@@ -22,19 +22,7 @@ require(compiler)
   )
 })# FINISH
 
-.html.mt4.ea.info <- cmpfun(function(file.link, html.parse) {
-  # ''' mt4 ea info '''
-  # 2016-08-17: Done
-  head.lines <- getNodeSet(html.parse, '//b', fun = xmlValue)[2:3]
-  time.string <- getNodeSet(html.parse, '//tr', fun = xmlValue)[2]
-  nchar.time.string <- nchar(time.string)
-  time <- substr(time.string, nchar.time.string - 10, nchar.time.string - 1)
-  .build.report.info(
-    name = head.lines[[1]],
-    broker = head.lines[[2]],
-    time = time
-  )
-})# FINISH
+
 
 .html.mt4.ea.tickets <- cmpfun(function(file.link, html.parse, end.time) {
   # ''' get mt4 ea tickets '''
@@ -187,21 +175,7 @@ require(compiler)
   })[-1]
 })# FINISH & OPTIMIZE
 
-.html.mt4.trade.info <- cmpfun(function(html.parse) {
-  # ''' get "info" for mt4 trade html '''
-  # 2016-08-16: CODING
-  infos <- sapply(getNodeSet(html.parse, '//b')[1:8], xmlValue)
-  time.index <- which(grepl('Trans', infos)) - 1
-  others <- infos[2:(time.index - 1)]
-  .build.report.info(
-    account = others[grep('Account', others)],
-    name = others[grep('Name', others)],
-    broker = infos[1],
-    currency = others[grep('Currency', others)],
-    leverage = others[grep('Leverage', others)],
-    time = infos[time.index]
-  )
-})# FINISH
+
 
 #### ++ READ HTML MT5 EA ####
 
@@ -216,21 +190,7 @@ require(compiler)
   )
 })# FINISH
 
-.html.mt5.ea.info <- cmpfun(function(info.table) {
-  # ''' mt5 html ea file: info '''
-  # 2016-08-16: Done
-  labels <- info.table[, 1]
-  values <- info.table[, 2]
-  time.string <- values[which(grepl('Period', labels))[1]]
-  nchar.time.string <- nchar(time.string)
-  .build.report.info(
-    broker = values[which(grepl('Broker', labels))[1]],
-    name = values[which(grepl('Expert', labels))[1]],
-    time = substr(time.string, nchar.time.string - 10, nchar.time.string - 1),
-    currency = values[which(grepl('Currency', labels))[1]],
-    leverage = values[which(grepl('Leverage', labels))[1]]
-  )
-})# FINISH
+
 
 .html.mt5.ea.tickets <- cmpfun(function(tickets.table) {
   # ''' mt5 html ea file: tickets '''
@@ -290,19 +250,7 @@ require(compiler)
   )
 })# FINISH
 
-.html.mt5.trade.info <- cmpfun(function(html.table) {
-  # ''' mt5 html trade info '''
-  # 2016-08-17: Done
-  head.info <- html.table$V2[1:4]
-  within(.build.report.info(
-    account = head.info[2],
-    name = head.info[1],
-    broker = head.info[3],
-    currency = head.info[2],
-    leverage = head.info[2],
-    time = head.info[4]
-  ), Time <- Time - 8 * 3600)
-})# FINISH
+
 
 .html.mt5.trade.tickets <- cmpfun(function(html.table) {
   # ''' get mt5 strategy tickets '''
