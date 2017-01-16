@@ -4,7 +4,7 @@
 
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
 files
-test.number <- 3:9
+test.number <- c(2:9, 11)
 file <- files[test.number]
 
 # .read.file(file, .file.extension(file))

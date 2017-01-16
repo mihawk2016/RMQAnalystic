@@ -88,7 +88,6 @@ File.Reader <- R6Class(
   # ''' read file '''
   # 2017-01-13:
   if (grepl('htm|html', file.extension)) {
-    #### ToDo ####
     html.parse <- .html.parse(file.link)
     html.title <- xmlValue(getNodeSet(html.parse,'//title')[[1]])
     if (grepl('Strategy Tester:', html.title)) {
@@ -104,12 +103,10 @@ File.Reader <- R6Class(
       return(MetaQuote.HTML.MT5Trade.Report$new(file.link, file.name))
     }
     if (grepl('Closed Trades Report', html.title, file.name)) {
-      #### ToDo ####
-      return(.read.html.mt4m.closed(file.link, file.name))
+      return(MetaQuote.HTML.MT4M_Closed.Report$new(file.link, file.name))
     }
     if (grepl('Raw Report', html.title, file.name)) {
-      #### ToDo ####
-      return(.read.html.mt4m.raw(file.link, file.name))
+      return(MetaQuote.HTML.MT4M_Raw.Report$new(file.link, file.name))
     }
     return(NULL)
     # MetaQuote.HTML.Report$new(file.link)
@@ -309,6 +306,53 @@ MetaQuote.HTML.MT5Trade.Report <- R6Class(
     }
   )
 )
+
+#### ++ HTML MT4Manager CLOSED : HTML REPORT : REPORT ####
+
+MetaQuote.HTML.MT4M_Closed.Report <- R6Class(
+  classname = 'MetaQuote HTML MT4Manager Closed Report',
+  inherit = MetaQuote.HTML.Report,
+  public = list(
+    initialize = function(file.link, file.name) {
+      private$m.info.file <- file.name
+      # private$m.html.table <- .html.table(file.link)
+      private$set.infos()
+    }
+  ),
+  private = list(
+    m.info.type = 'MT4M-Closed',
+    m.html.table = NULL,
+    
+    set.infos = function() {
+      # ''' set infos '''
+      # 2017-01-16: Version 0.1
+    }
+  )
+)
+
+#### ++ HTML MT4Manager RAW : HTML REPORT : REPORT ####
+
+MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
+  classname = 'MetaQuote HTML MT4Manager Raw Report',
+  inherit = MetaQuote.HTML.Report,
+  public = list(
+    initialize = function(file.link, file.name) {
+      private$m.info.file <- file.name
+      # private$m.html.table <- .html.table(file.link)
+      private$set.infos()
+    }
+  ),
+  private = list(
+    m.info.type = 'MT4M-Raw',
+    m.html.table = NULL,
+    
+    set.infos = function() {
+      # ''' set infos '''
+      # 2017-01-16: Version 0.1
+    }
+  )
+)
+
 
 
 # file.extension <- .file.extension(file.name)
