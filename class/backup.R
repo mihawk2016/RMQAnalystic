@@ -812,29 +812,9 @@ require(compiler)
   NA
 })# FINISH
 
-.format.report.tickets.time <- cmpfun(function(time) {
-  # ''' reform report info: time & tickets column: time '''
-  # 2016-08-16: FINISH
-  if (length(time) > 1) {
-    return(as.POSIXct(sapply(time, .format.report.tickets.time), origin = '1970-01-01', tz = 'GMT'))
-  }
-  if (all(class(time) == c("POSIXct", "POSIXlt"))) {
-    return(time)
-  }
-  if (is.character(time)) {
-    if (grepl(',', time)) {
-      return(.format.mt4.report.info.time(time))
-    }
-    time <- gsub('-', '.', time)
-    format <- '%Y.%m.%d %H:%M:%S'
-    sub_format <- substr(format, 1, nchar(time) - 2)
-    return(as.POSIXct(time, format = sub_format, tz = 'GMT'))
-  }
-  if (is.numeric(time)) {
-    return(as.POSIXct(time, origin = '1970-01-01', tz = 'GMT'))
-  }
-  NA
-})# FINISH
+
+
+
 
 .format.report.tickets.string <- cmpfun(function(string) {
   # ''' reform report tickets column: string '''
@@ -855,112 +835,6 @@ require(compiler)
   NA
 })# FINISH
 
-.report.tickets.exit <- cmpfun(function(comments) {
-  # ''' get report tickets column: exit from comment'''
-  # 2016-12-01: CODING
-  comments <- toupper(comments)
-  comments <- gsub('/| / ', '', comments)
-  exit <- vector(mode = 'character', length = length(comments))
-  exit[grep('SO', comments)] <- 'SO'
-  exit[grep('SL', comments)] <- 'SL'
-  exit[grep('TP', comments)] <- 'TP'
-  exit
-})# FINISH
-
-.format.mt4.report.info.time <- cmpfun(function(time) {
-  # ''' reform mt4 report info time '''
-  # 2016-08-16: FINISH
-  local_time <- Sys.getlocale('LC_TIME')
-  Sys.setlocale('LC_TIME', 'us')
-  new_time <- as.POSIXct(time, '%Y %b %d, %H:%M', tz = 'GMT')
-  Sys.setlocale('LC_TIME', local_time)
-  new_time
-})# FINISH
-
-#### BUILD INFO ####
-
-.build.report.info <- cmpfun(function(account = NA, group = NA, name = NA, broker = NA, currency = NA, leverage = NA, time = NA) {
-  # ''' create info dataframe '''
-  # 2016-08-16: Done
-  # 2016-08-16: ToDo: chinese 'name'
-  data.frame(
-    stringsAsFactors = F,
-    row.names = NULL,
-    Account = .format.report.info.account(account),
-    Group = group,
-    Name = .format.report.info.name(name),
-    Broker = .format.report.info.broker(broker),
-    Currency = .format.report.info.currency(currency),
-    Leverage = .format.report.info.leverage(leverage),
-    Time = .format.report.info.time(time)
-  )
-})# FINISH
-
-#### + FORMAT REPORT-INFO ####
-
-.format.report.info.account <- cmpfun(function(account) {
-  # ''' format report info: account '''
-  # 2016-08-16: TESTING
-  if (is.na(account) | is.numeric(account)) return(account)
-  if (is.character(account)) {
-    account <- gsub('Account: ', '', account)
-    match1 <- regexpr('[[:digit:]]*', account)
-    if (match1 > 0) {
-      account <- substr(account, match1, attr(match1, 'match.length') + match1 - 1)
-    }
-    return(as.numeric(account))
-  }
-  # print('ERROR: in .format.report.info.account()')
-  NA
-})# FINISH
-
-.format.report.info.name <- cmpfun(function(name) {
-  # ''' reform report info: name '''
-  # 2016-08-16: TESTING
-  if (is.na(name)) return(NA)
-  name <- gsub('Name: ', '', name)
-  ifelse(name == '', NA, name)
-})# FINISH
-
-.format.report.info.broker <- cmpfun(function(broker) {
-  # ''' reform report info: broker '''
-  # 2016-08-16: TESTING
-  if (is.na(broker)) return(NA)
-  gsub(' .*', '', broker)
-})# FINISH
-
-.format.report.info.currency <- cmpfun(function(currency) {
-  # ''' reform report info: currency '''
-  # 2016-08-16: TESTING
-  if (is.na(currency)) return(NA)
-  currency <- gsub('Currency: ', '', currency)
-  match1 <- regexpr('[[:upper:]]+', currency)
-  if (match1 > 0) {
-    currency <- substr(currency, match1, attr(match1, 'match.length') + match1 - 1)
-  }
-  ifelse(currency == '', NA, currency)
-})# FINISH
-
-.format.report.info.leverage <- cmpfun(function(leverage) {
-  # ''' reform report info: leverage '''
-  # 2016-08-16: TESTING
-  if (is.na(leverage) | is.numeric(leverage)) return(leverage)
-  if (is.character(leverage)) {
-    match1 <- regexpr('1:[[:digit:]]+', leverage)
-    if (match1 > 0) {
-      leverage <- substr(leverage, match1 + 2, attr(match1, 'match.length') + match1 - 1)
-    }
-    return(as.numeric(leverage))
-  }
-  # print('ERROR: in reform.report.info.leverage()')
-  NA
-})# FINISH
-
-.format.report.info.time <- cmpfun(function(time) {
-  # ''' reform report info: time '''
-  # 2016-08-16: TESTING
-  .format.report.tickets.time(time)
-})# FINISH
 
 
 

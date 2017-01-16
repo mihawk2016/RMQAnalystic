@@ -27,7 +27,8 @@ MetaQuote.Report <- R6Class(
     }
   ),
   private = list(
-    m.infos = NULL
+    m.infos = NULL,
+    m.tickets = NULL
     
   )
 )
@@ -43,20 +44,15 @@ MetaQuote.HTML.Report <- R6Class(
     }
   ),
   private = list(
-    
-    # get.html.table = function(file.link) {
-    #   .html.table(file.link)
-    # }
+    get.html.table = function(file.link) {
+      # ''' get html table for tickets '''
+      # 2017-01-17: Version 1.0
+      readHTMLTable(file.link, stringsAsFactors = FALSE, encoding = 'UTF-8')
+    }
   )
 )
 
-#### + HTML REPORT - Utils ####
 
-.html.table <- cmpfun(function(file.link) {
-  # ''' get html table '''
-  # 2017-01-13: Version 0.1
-  readHTMLTable(file.link, stringsAsFactors = FALSE, encoding = 'UTF-8')
-})
 
 #### ++ HTML MT4 EA : HTML REPORT : REPORT ####
 
@@ -69,6 +65,7 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       private$m.html.parse <- html.parse
       private$init.infos(file.name, html.parse)
     }
+    
   ),
   private = list(
     m.html.parse = NULL,
