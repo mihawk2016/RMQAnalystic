@@ -4,7 +4,8 @@
 
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
 files
-test.number <- c(2:9, 11)
+# test.number <- c(2:9, 11)
+test.number <- 3
 file <- files[test.number]
 
 # .read.file(file, .file.extension(file))
@@ -15,4 +16,5 @@ A$get.unsupported.file()
 
 A$get.reports() -> B
 
-print(B)
+B[[1]] -> B
+print(B$get.infos.dataframe())
