@@ -835,6 +835,24 @@ require(compiler)
   NA
 })# FINISH
 
+<<<<<<< HEAD
 
+=======
+<<<<<<< HEAD
+
+=======
+.report.tickets.exit <- cmpfun(function(comments) {
+  # ''' get report tickets column: exit from comment'''
+  # 2016-12-01: CODING
+  comments <- toupper(comments)
+  comments <- gsub('/| / ', '', comments)
+  exit <- vector(mode = 'character', length = length(comments))
+  exit[grep('SO', comments)] <- 'SO'
+  exit[grep('SL', comments)] <- 'SL'
+  exit[grep('TP', comments)] <- 'TP'
+  exit
+})# FINISH
+>>>>>>> 0ff17fdc68e57f8ef76f8ba25ded1c096efb86e2
+>>>>>>> 5e72847317d8edb816a8b9b312c866017732f62a
 
 
