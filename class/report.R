@@ -64,6 +64,11 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       super$initialize()
       private$m.html.parse <- html.parse
       private$init.infos(file.name, html.parse)
+    },
+    init.tickets = function() {
+      # ''' init tickets ''' ###
+      # 2017-01-18: Version 0.1
+      html.table <- private$get.html.table
     }
     
   ),

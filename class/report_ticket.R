@@ -30,11 +30,14 @@ TICKETS_GROUP = c(
 )
 
 TICKETS_GROUP_COLUMNS = list(
-  'Money' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'PROFIT')],
-  'CLOSED' = 'Closed',
-  'OPEN' = 'Open',
-  'PENDING' = 'Pending',
-  'WORKING' = 'Working'
+  'MONEY' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'PROFIT')],
+  'CLOSED' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
+  'OPEN' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
+  'PENDING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                                'CTIME', 'CPRICE')],
+  'WORKING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')]
 )
 names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 #### REPORT TICKETS ####
@@ -42,44 +45,64 @@ names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 MetaQuote.ReportTickets <- R6Class(
   classname = 'MetaQuote Report Tickets',
   public = list(
-    
+    initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
+      all.tickets <- rbind(
+        private$build.group(money.table, 'MONEY'),
+        private$build.group(closed.table, 'CLOSED'),
+        private$build.group(open.table, 'OPEN'),
+        private$build.group(pending.table, 'PENDING'),
+        private$build.group(working.table, 'WORKING'),
+        make.row.names = FALSE
+      )
+      
+    }
   ),
   private = list(
-    m.original = NULL#,
-    # build.group = function()
+    m.original = NULL,
+    build.group = function(table, group) {
+      .build.tickets.group(table, group)
+    }
   )
 )
 
-.build.tickets.group = cmpfun(function(table, group, columns) {
+.build.tickets.group = cmpfun(function(table, group) {
   # ''' build tickets group '''
   # 2017-01-17: Version 0.2 add Comment & Exit check
   # 2017-01-17: Version 0.1
+  group.lable <- TICKETS_GROUP[group]
+  columns <- TICKETS_GROUP_COLUMNS[[group.lable]]
   table.columns <- colnames(table)
-  table[TICKETS_COLUMNS['GROUP']] <- group
+  table[TICKETS_COLUMNS['GROUP']] <- group.lable
   ## default 0 check
   zero.columns <- columns[which(!(columns %in% table.columns))]
   table <- tryCatch(
-    cbind(table, matrix(data = 0, ncol = zero.columns.length, dimnames = list(NULL, c(zero.columns)))),
+    cbind(table, matrix(data = 0, ncol = length(zero.columns), dimnames = list(NULL, c(zero.columns)))),
     error = function(e) table
   )
   ## comment & exit
-  if (TICKETS_COLUMNS['COMMENT'] %in% table.columns) {
-    table[TICKETS_COLUMNS['EXIT']] <- .report.tickets.exit(table[TICKETS_COLUMNS['EXIT']])
-  } else {
-    table <- cbind(table, matrix(data = '', ncol = 2, dimnames = list(NULL, TICKETS_COLUMNS[c('COMMENT', 'EXIT')])))
-  }
-  group.tickets <- table[c(columns, TICKETS_COLUMNS[c('GROUP', 'COMMENT', 'EXIT')])]
-  na.columns <- TICKETS_COLUMNS[which(!(TICKETS_COLUMNS %in% c(columns, TICKETS_COLUMNS[c('GROUP', 'COMMENT', 'EXIT')])))]
-  na.columns.length <- length(na.columns)
-  if (na.columns.length > 0) {
-    group.tickets <- cbind(group.tickets, matrix(data = NA, ncol = na.columns.length, dimnames = list(NULL, c(na.columns))))
-  }
-  group.tickets
+  table <- tryCatch({
+      table[TICKETS_COLUMNS['EXIT']] <- .report.tickets.exit(table[TICKETS_COLUMNS['COMMENT']])
+      table
+    },
+    error = function(e) cbind(table, matrix(data = '', ncol = 2, dimnames = list(NULL, TICKETS_COLUMNS[c('COMMENT', 'EXIT')])))
+  )
+  group.columns <- c(columns, TICKETS_COLUMNS[c('GROUP', 'COMMENT', 'EXIT')])
+  table <- table[group.columns]
+  na.columns <- TICKETS_COLUMNS[which(!(TICKETS_COLUMNS %in% group.columns))]
+  ## NAs check
+  tryCatch(
+    cbind(table, matrix(data = NA, ncol = length(na.columns), dimnames = list(NULL, c(na.columns)))),
+    error = function(e) table
+  )
 })
 
 .report.tickets.exit <- cmpfun(function(comments) {
   # ''' get report tickets column: exit from comment'''
+  # 2017-01-17: Version 1.1 add support for comments type - data.frame
   # 2016-12-01: Version 1.0
+  if (is.data.frame(comments)) {
+    comments <- comments[, 1]
+  }
   comments <- toupper(comments)
   comments <- gsub('/| / ', '', comments)
   exit <- vector(mode = 'character', length = length(comments))
