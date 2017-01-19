@@ -1,71 +1,148 @@
 require(R6)
 require(compiler)
 
-TICKETS_COLUMNS = c(
-  'TICKETS' = 'Tickets',
-  'OTIME' = 'OTime',
-  'TYPE' = 'Type',
-  'VOLUME' = 'Volume',
-  'ITEM' = 'Item',
-  'OPRICE' = 'OPrice',
-  'SL' = 'SL',
-  'TP' = 'TP',
-  'CTIME' = 'CTime',
-  'CPRICE' = 'CPrice',
-  'COMMISSION' = 'Commission',
-  'TAXES' = 'Taxes',
-  'SWAP' = 'Swap',
-  'PROFIT' = 'Profit',
-  'GROUP' = 'Group',
-  'COMMENT' = 'Comment',
-  'EXIT' = 'Exit'
-)
+#### DEFINES ####
 
-TICKETS_GROUP = c(
-  'MONEY' = 'Money',
-  'CLOSED' = 'Closed',
-  'OPEN' = 'Open',
-  'PENDING' = 'Pending',
-  'WORKING' = 'Working'
-)
+TICKETS_COLUMNS = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                    'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT')#, 'EXIT')
+
+TICKETS_GROUP = c('Money', 'Closed', 'Open', 'Pending', 'Working')
 
 TICKETS_GROUP_COLUMNS = list(
-  'MONEY' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'PROFIT')],
-  'CLOSED' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
-  'OPEN' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
-  'PENDING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                                'CTIME', 'CPRICE')],
-  'WORKING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')]
+  'Money' = c('TICKET', 'OTIME', 'PROFIT'),
+  'Closed' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  'Open' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  'Pending' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                'CTIME', 'CPRICE'),
+  'Working' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
 )
 names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 #### REPORT TICKETS ####
 
+# MetaQuote.ReportTickets <- R6Class(
+#   classname = 'MetaQuote Report Tickets',
+#   public = list(
+#     initialize = function() {
+#       private$m.money.group <- MeatQuote.Tickets.Money$new()
+#       private$m.closed.group <- MeatQuote.Tickets.Closed$new()
+#       private$m.open.group <- MeatQuote.Tickets.Open$new()
+#       private$m.pending.group <- MeatQuote.Tickets.Pending$new()
+#       private$m.working.group <- MeatQuote.Tickets.Working$new()
+#     },
+#     get.groups = function(group) {
+#       if (missing(group)) {
+#         return(list(
+#           Money = private$m.money.group,
+#           Closed = private$m.closed.group,
+#           Open = private$m.open.group,
+#           Pending = private$m.pending.group,
+#           Working = private$m.working.group
+#         ))
+#       }
+#       if (length(group) > 1) {
+#         return(lapply(group, self$get.tickets))
+#       }
+#       switch(
+#         group,
+#         Money = private$m.money.group,
+#         Closed = private$m.closed.group,
+#         Open = private$m.open.group,
+#         Pending = private$m.pending.group,
+#         Working = private$m.working.group,
+#         NULL
+#       )
+#     },
+#     get.tickets = function(group) {
+#       switch(
+#         group,
+#         Money = private$m.money.group$get.tickets(),
+#         Closed = private$m.closed.group$get.tickets(),
+#         Open = private$m.open.group$get.tickets(),
+#         Pending = private$m.pending.group$get.tickets(),
+#         Working = private$m.working.group$get.tickets(),
+#         NULL
+#       )
+#     }
+#     # get.tickets = function() {
+#     #
+#     # }
+#   ),
+#   private = list(
+#     m.money.group,
+#     m.closed.group,
+#     m.open.group,
+#     m.pending.group,
+#     m.working.group,
+#     
+#     build.group.tickets = function(table, group) {
+#       .build.tickets.group(table, group)
+#     }#,
+#     # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
+#     #   # ''' sort dataframe with columns '''
+#     #   # 2016-08-15: Done
+#     #   dataframe[order(dataframe[, columns], decreasing = decreasing), ]
+#     # })# FINISH
+#   )
+# )
+
 MetaQuote.ReportTickets <- R6Class(
   classname = 'MetaQuote Report Tickets',
   public = list(
-    initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
-      all.tickets <- rbind(
-        private$build.group.tickets(money.table, 'MONEY'),
-        private$build.group.tickets(closed.table, 'CLOSED'),
-        private$build.group.tickets(open.table, 'OPEN'),
-        private$build.group.tickets(pending.table, 'PENDING'),
-        private$build.group.tickets(working.table, 'WORKING'),
-        make.row.names = FALSE
-      )
-      print(all.tickets)
-      all.tickets
-    }#,
-    # get.tickets = function() {
-    #   
-    # }
+    # initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
+    #   all.tickets <- rbind(
+    #     private$build.group.tickets(money.table, 'Money'),
+    #     private$build.group.tickets(closed.table, 'Closed'),
+    #     private$build.group.tickets(open.table, 'Open'),
+    #     private$build.group.tickets(pending.table, 'Pending'),
+    #     private$build.group.tickets(working.table, 'Working'),
+    #     make.row.names = FALSE
+    #   )
+    #   print(all.tickets)
+    #   all.tickets
+    # },
+    get.tickets = function() {
+      private$m.tickets
+    },
+    set.tickets = function(tickets) {
+      private$m.tickets <- tickets
+    },
+    add.tickets = function(tickets) {
+      new.tickets <- rbind(self$get.tickets(), tickets)
+      self$set.tickets(new.tickets)
+    },
+    add.table = function(table, group) {
+      self$add.tickets(private$build.group.tickets(table, group))
+    }
   ),
   private = list(
-    m.original = NULL,
+    m.tickets = NULL,
+    m.columns.uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                          'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
+    m.columns.money = c('TICKET', 'OTIME', 'PROFIT'),
+    m.columns.closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                         'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+    m.columns.open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                       'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+    m.columns.pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                          'CTIME', 'CPRICE'),
+    m.columns.working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE'),
+    
     build.group.tickets = function(table, group) {
-      .build.tickets.group(table, group)
-    }#,
+      .build.tickets.group(table, private$get.group.columns(group), group, private$m.columns.uniform)
+    },
+    get.group.columns = function(group) {
+      switch(
+        group,
+        Money = private$m.columns.money,
+        Closed = private$m.columns.closed,
+        Open = private$m.columns.open,
+        Pending = private$m.columns.pending,
+        Working = private$m.columns.working,
+        NULL
+      )
+    }
     # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
     #   # ''' sort dataframe with columns '''
     #   # 2016-08-15: Done
@@ -74,33 +151,31 @@ MetaQuote.ReportTickets <- R6Class(
   )
 )
 
-.build.tickets.group = cmpfun(function(table, group) {
+.build.tickets.group = cmpfun(function(table, columns, group, uniform.columns) {
   # ''' build tickets group '''
-  # 2017-01-17: Version 0.2 add Comment & Exit check
+  # 2017-01-17: Version 0.2 add Comment
   # 2017-01-17: Version 0.1
   if (is.null(table)) {
+    return(NULL) 
+  }
+  if (nrow(table) == 0) {
     return(NULL)
   }
-  group.lable <- TICKETS_GROUP[group]
-  columns <- TICKETS_GROUP_COLUMNS[[group.lable]]
   table.columns <- colnames(table)
-  table[TICKETS_COLUMNS['GROUP']] <- group.lable
+  table$GROUP <- group
   ## default 0 check
   zero.columns <- columns[which(!(columns %in% table.columns))]
   table <- tryCatch(
     cbind(table, matrix(data = 0, ncol = length(zero.columns), dimnames = list(NULL, c(zero.columns)))),
     error = function(e) table
   )
-  ## comment & exit
-  table <- tryCatch({
-      table[TICKETS_COLUMNS['EXIT']] <- .report.tickets.exit(table[TICKETS_COLUMNS['COMMENT']])
-      table
-    },
-    error = function(e) cbind(table, matrix(data = '', ncol = 2, dimnames = list(NULL, TICKETS_COLUMNS[c('COMMENT', 'EXIT')])))
-  )
-  group.columns <- c(columns, TICKETS_COLUMNS[c('GROUP', 'COMMENT', 'EXIT')])
+  ## comment
+  if (is.null(table$COMMENT)) {
+    table$COMMENT <- ''
+  }
+  group.columns <- c(columns, c('GROUP', 'COMMENT'))
   table <- table[group.columns]
-  na.columns <- TICKETS_COLUMNS[which(!(TICKETS_COLUMNS %in% group.columns))]
+  na.columns <- uniform.columns[which(!(uniform.columns %in% group.columns))]
   ## NAs check
   tryCatch(
     cbind(table, matrix(data = NA, ncol = length(na.columns), dimnames = list(NULL, c(na.columns)))),
@@ -176,9 +251,11 @@ MetaQuote.ReportTickets.Money <- R6Class(
     return(time)
   }
   if (is.character(time)) {
-    if (grepl(',', time)) {
-      return(.format.html.mt4.trade.time(time))
-    }
+    suppressWarnings(
+      if (grepl(',', time)) {
+        return(.format.html.mt4.trade.time(time))
+      }
+    )
     time <- gsub('-', '.', time)
     format <- '%Y.%m.%d %H:%M:%S'
     sub_format <- substr(format, 1, nchar(time) - 2)
