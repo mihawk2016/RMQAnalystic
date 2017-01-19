@@ -1,43 +1,22 @@
 require(R6)
 require(compiler)
 
-TICKETS_COLUMNS = c(
-  'TICKETS' = 'Tickets',
-  'OTIME' = 'OTime',
-  'TYPE' = 'Type',
-  'VOLUME' = 'Volume',
-  'ITEM' = 'Item',
-  'OPRICE' = 'OPrice',
-  'SL' = 'SL',
-  'TP' = 'TP',
-  'CTIME' = 'CTime',
-  'CPRICE' = 'CPrice',
-  'COMMISSION' = 'Commission',
-  'TAXES' = 'Taxes',
-  'SWAP' = 'Swap',
-  'PROFIT' = 'Profit',
-  'GROUP' = 'Group',
-  'COMMENT' = 'Comment',
-  'EXIT' = 'Exit'
-)
+#### DEFINES ####
 
-TICKETS_GROUP = c(
-  'MONEY' = 'Money',
-  'CLOSED' = 'Closed',
-  'OPEN' = 'Open',
-  'PENDING' = 'Pending',
-  'WORKING' = 'Working'
-)
+TICKETS_COLUMNS = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                    'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT')#, 'EXIT')
+
+TICKETS_GROUP = c('Money', 'Closed', 'Open', 'Pending', 'Working')
 
 TICKETS_GROUP_COLUMNS = list(
-  'MONEY' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'PROFIT')],
-  'CLOSED' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
-  'OPEN' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT')],
-  'PENDING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                                'CTIME', 'CPRICE')],
-  'WORKING' = TICKETS_COLUMNS[c('TICKETS', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')]
+  'Money' = c('TICKET', 'OTIME', 'PROFIT'),
+  'Closed' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  'Open' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  'Pending' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                'CTIME', 'CPRICE'),
+  'Working' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
 )
 names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 #### REPORT TICKETS ####
@@ -47,11 +26,11 @@ MetaQuote.ReportTickets <- R6Class(
   public = list(
     initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
       all.tickets <- rbind(
-        private$build.group.tickets(money.table, 'MONEY'),
-        private$build.group.tickets(closed.table, 'CLOSED'),
-        private$build.group.tickets(open.table, 'OPEN'),
-        private$build.group.tickets(pending.table, 'PENDING'),
-        private$build.group.tickets(working.table, 'WORKING'),
+        private$build.group.tickets(money.table, 'Money'),
+        private$build.group.tickets(closed.table, 'Closed'),
+        private$build.group.tickets(open.table, 'Open'),
+        private$build.group.tickets(pending.table, 'Pending'),
+        private$build.group.tickets(working.table, 'Working'),
         make.row.names = FALSE
       )
       print(all.tickets)
@@ -62,7 +41,7 @@ MetaQuote.ReportTickets <- R6Class(
     # }
   ),
   private = list(
-    m.original = NULL,
+    # m.original = NULL,
     build.group.tickets = function(table, group) {
       .build.tickets.group(table, group)
     }#,
@@ -76,29 +55,28 @@ MetaQuote.ReportTickets <- R6Class(
 
 .build.tickets.group = cmpfun(function(table, group) {
   # ''' build tickets group '''
-  # 2017-01-17: Version 0.2 add Comment & Exit check
+  # 2017-01-17: Version 0.2 add Comment
   # 2017-01-17: Version 0.1
   if (is.null(table)) {
     return(NULL)
   }
-  group.lable <- TICKETS_GROUP[group]
-  columns <- TICKETS_GROUP_COLUMNS[[group.lable]]
+  if (nrow(table) == 0) {
+    return(NULL)
+  }
+  columns <- TICKETS_GROUP_COLUMNS[[group]]
   table.columns <- colnames(table)
-  table[TICKETS_COLUMNS['GROUP']] <- group.lable
+  table$GROUP <- group
   ## default 0 check
   zero.columns <- columns[which(!(columns %in% table.columns))]
   table <- tryCatch(
     cbind(table, matrix(data = 0, ncol = length(zero.columns), dimnames = list(NULL, c(zero.columns)))),
     error = function(e) table
   )
-  ## comment & exit
-  table <- tryCatch({
-      table[TICKETS_COLUMNS['EXIT']] <- .report.tickets.exit(table[TICKETS_COLUMNS['COMMENT']])
-      table
-    },
-    error = function(e) cbind(table, matrix(data = '', ncol = 2, dimnames = list(NULL, TICKETS_COLUMNS[c('COMMENT', 'EXIT')])))
-  )
-  group.columns <- c(columns, TICKETS_COLUMNS[c('GROUP', 'COMMENT', 'EXIT')])
+  ## comment
+  if (is.null(table$COMMENT)) {
+    table$COMMENT <- ''
+  }
+  group.columns <- c(columns, c('GROUP', 'COMMENT'))
   table <- table[group.columns]
   na.columns <- TICKETS_COLUMNS[which(!(TICKETS_COLUMNS %in% group.columns))]
   ## NAs check
@@ -176,9 +154,11 @@ MetaQuote.ReportTickets.Money <- R6Class(
     return(time)
   }
   if (is.character(time)) {
-    if (grepl(',', time)) {
-      return(.format.html.mt4.trade.time(time))
-    }
+    suppressWarnings(
+      if (grepl(',', time)) {
+        return(.format.html.mt4.trade.time(time))
+      }
+    )
     time <- gsub('-', '.', time)
     format <- '%Y.%m.%d %H:%M:%S'
     sub_format <- substr(format, 1, nchar(time) - 2)
