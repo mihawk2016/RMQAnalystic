@@ -5,16 +5,20 @@
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
 files
 # test.number <- c(2:9, 11)
-test.number <- 12
+test.number <- 4
 file <- files[test.number]
 
 # .read.file(file, .file.extension(file))
 
-A <- File.Reader$new(file)
+A <- MQAnalystic$new()
+
+A$add.files(file)
 
 A$get.unsupported.file()
 
 A$get.reports() -> B
 
 B[[1]] -> B
-print(B$get.infos.dataframe())
+# print(B$get.infos.dataframe())
+
+print(E <- B$init.tickets())

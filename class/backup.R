@@ -114,27 +114,6 @@ require(compiler)
   )
 })# FINISH
 
-.html.mt4.ea.tickets.item <- cmpfun(function(html.parse) {
-  # ''' mt4 ea item '''
-  # 2016-08-14: Done
-  item.string <- getNodeSet(html.parse, '//tr/td', fun = xmlValue)[[2]]
-  gsub(' ([ \\(\\)[:alpha:]])*', '', item.string)
-})# FINISH
-
-.html.mt4.ea.tickets.begin <- cmpfun(function(html.parse) {
-  # ''' mt4 ea info '''
-  # 2016-08-14: Done
-  time.string <- getNodeSet(html.parse, '//tr', fun = xmlValue)[2]
-  nchar.time.string <- nchar(time.string)
-  substr(time.string, nchar.time.string - 23, nchar.time.string - 14)
-})# FINISH
-
-.html.mt4.ea.tickets.capital <- cmpfun(function(info.table) {
-  # ''' mt4 strategy capital '''
-  # 2016-08-14: Done
-  info.table[nrow(info.table) - 11, 2]
-})# FINISH
-
 #### ++ READ HTML MT4 TRADE ####
 
 .read.html.mt4.trade <- cmpfun(function(file.link, html.parse) {
@@ -558,11 +537,7 @@ require(compiler)
   )
 })# FINISH
 
-.sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
-  # ''' sort dataframe with columns '''
-  # 2016-08-15: Done
-  dataframe[order(dataframe[, columns], decreasing = decreasing), ]
-})# FINISH
+
 
 #### BUILD TICKETS ####
 

@@ -5,18 +5,16 @@ require(compiler)
 
 #### FILE READER ####
 
-File.Reader <- R6Class(
-  classname = 'File Reader',
+MQAnalystic <- R6Class(
+  classname = 'MetaQuote Analystic',
   public = list(
-    initialize = function(file.link) {
-      # ''' init: input files '''
-      # 2017-01-13: Version 0.1
-      self$add.files(file.link)
+    initialize = function() {
+
     },# FINISH
-    add.files = function(file.link) {
+    add.files = function(file.path) {
       # ''' add files '''
       # 2017-01-13: Version 0.1
-      lapply(file.link, FUN = private$input.file)
+      lapply(file.path, FUN = private$input.file)
     },# TESTING
     clear.files = function() {
       # ''' clear all files '''
@@ -47,12 +45,12 @@ File.Reader <- R6Class(
     m.unsupported.files = NULL,
     m.supported.files = NULL,
     
-    input.file = function(file.link) {
+    input.file = function(file.path) {
       # ''' input one file '''
       # 2017-01-14: Version 0.1
-      file.name <- .file.name(file.link)
+      file.name <- .file.name(file.path)
       file.extension <- .file.extension(file.name)
-      report <- .read.file(file.link, file.name, file.extension)
+      report <- .read.file(file.path, file.name, file.extension)
       ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.supported.file(report))
     },
     add.supported.file = function(file) {
@@ -70,81 +68,59 @@ File.Reader <- R6Class(
 
 #### FILE READER - Utils ####
 
-.file.name <- cmpfun(function(file.link) {
+.file.name <- cmpfun(function(file.path) {
   # ''' get file name '''
   # 2016-08-11: Version 1.0
-  tail(strsplit(file.link, '/', fixed = T)[[1]], 1)
+  tail(strsplit(file.path, '/', fixed = T)[[1]], 1)
 })# FINISH
 
-.file.extension <- cmpfun(function(file.link) {
+.file.extension <- cmpfun(function(file.path) {
   # ''' get file extension '''
   # 2017-01-13: Version 1.1 add support for none extension file
   # 2016-08-11: Version 1.0
-  file.link.split <- strsplit(file.link, '.', fixed = T)[[1]]
-  ifelse(length(file.link.split) > 1, tolower(tail(file.link.split, 1)), '')
+  file.path.split <- strsplit(file.path, '.', fixed = T)[[1]]
+  ifelse(length(file.path.split) > 1, tolower(tail(file.path.split, 1)), '')
 })# FINISH
 
-.read.file <- cmpfun(function(file.link, file.name, file.extension) {
+.read.file <- cmpfun(function(file.path, file.name, file.extension) {
   # ''' read file '''
   # 2017-01-13:
   if (grepl('htm|html', file.extension)) {
-    html.parse <- htmlParse(file.link, encoding = 'UTF-8')
+    html.parse <- htmlParse(file.path, encoding = 'UTF-8')
     html.title <- xmlValue(getNodeSet(html.parse,'//title')[[1]])
     if (grepl('Strategy Tester:', html.title)) {
-      return(MetaQuote.HTML.MT4EA.Report$new(file.link, file.name, html.parse))
+      return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
     }
     if (grepl('Statement:', html.title)) {
-      return(MetaQuote.HTML.MT4Trade.Report$new(file.link, file.name, html.parse))
+      return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
     }
     if (grepl('Strategy Tester Report', html.title)) {
-      return(MetaQuote.HTML.MT5EA.Report$new(file.link, file.name))
+      return(MetaQuote.HTML.MT5EA.Report$new(file.path, file.name))
     }
     if (grepl('Trade History Report', html.title)) {
-      return(MetaQuote.HTML.MT5Trade.Report$new(file.link, file.name))
+      return(MetaQuote.HTML.MT5Trade.Report$new(file.path, file.name))
     }
     if (grepl('Closed Trades Report', html.title, file.name)) {
-      return(MetaQuote.HTML.MT4M_Closed.Report$new(file.link, file.name))
+      return(MetaQuote.HTML.MT4M_Closed.Report$new(file.path, file.name))
     }
     if (grepl('Raw Report', html.title, file.name)) {
-      return(MetaQuote.HTML.MT4M_Raw.Report$new(file.link, file.name))
+      return(MetaQuote.HTML.MT4M_Raw.Report$new(file.path, file.name))
     }
     return(NULL)
-    # MetaQuote.HTML.Report$new(file.link)
+    # MetaQuote.HTML.Report$new(file.path)
   } else if (grepl('xlsx|xls', file.extension)) {
     return(NULL)
     #### ToDo ####
-    # xlsx_table <- read.xlsx(file.link)
+    # xlsx_table <- read.xlsx(file.path)
     # print(xlsx_table)
-    # file.csv_xlsx(file.link, xlsx_table)
-  } else if (grepl('csv', file_extension)) {
+    # file.csv_xlsx(file.path, xlsx_table)
+  } else if (grepl('csv', file.extension)) {
     return(NULL)
     #### ToDo ####
-    # csv_table <- read.csv(file.link, encoding = 'UTF-8')
-    # file.csv_xlsx(file.link, csv_table)
+    # csv_table <- read.csv(file.path, encoding = 'UTF-8')
+    # file.csv_xlsx(file.path, csv_table)
   } else {
     NULL
   }
 })
 
-
-
-
-
-# file.extension <- .file.extension(file.name)
-# report <- if (grepl('htm|html', file.extension)) {
-#   .read.html(file.link)
-# } else if (grepl('xlsx|xls', file.extension)) {
-#   #### ToDo ####
-#   xlsx_table <- read.xlsx(file.link)
-#   print(xlsx_table)
-#   file.csv_xlsx(file.link, xlsx_table)
-# } else if (grepl('csv', file_extension)) {
-#   #### ToDo ####
-#   csv_table <- read.csv(file.link, encoding = 'UTF-8')
-#   file.csv_xlsx(file.link, csv_table)
-# } else {
-#   NULL
-# }
-# if (is.null(report)) return(NULL)
-# within(report, Source <- file.link)
-# })

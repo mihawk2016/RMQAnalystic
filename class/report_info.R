@@ -13,7 +13,7 @@ MetaQuote.ReportInfos <- R6Class(
       cbind.data.frame(
         stringsAsFactors = FALSE,
         row.names = NULL,
-        File = private$m.file,
+        File = private$m.file.name,
         Type = private$m.type,
         Account = private$m.account,
         Group = private$m.group,
@@ -29,7 +29,8 @@ MetaQuote.ReportInfos <- R6Class(
       # 2017-01-16: Version 0.1
       switch(
         member,
-        file = private$m.file,
+        file.path = private$m.file.path,
+        file.name = private$m.file.name,
         type = private$m.type,
         account = private$m.account,
         group = private$m.group,
@@ -46,7 +47,8 @@ MetaQuote.ReportInfos <- R6Class(
       # 2017-01-16: Version 0.1
       switch(
         member,
-        file = private$set.file(value),
+        file.path = private$set.file.path(value),
+        file.name = private$set.file.name(value),
         type = private$set.type(value),
         account = private$set.account(value),
         group = private$set.group(value),
@@ -62,7 +64,8 @@ MetaQuote.ReportInfos <- R6Class(
   private = list(
     #### PRIVATE ####
     #### + Member ####
-    m.file = NA,
+    m.file.path = NULL,
+    m.file.name = NA,
     m.type = NA,
     m.account = NA,
     m.group = NA,
@@ -73,8 +76,11 @@ MetaQuote.ReportInfos <- R6Class(
     m.time = NA,
     #### + FUNCTION ####
     #### ++ Getter ####
-    get.file = function() {
-      private$m.file
+    get.file.path = function() {
+      private$m.file.path
+    },#FINISH
+    get.file.name = function() {
+      private$m.file.name
     },#FINISH
     get.type = function() {
       private$m.type
@@ -101,32 +107,35 @@ MetaQuote.ReportInfos <- R6Class(
       private$m.time
     },#FINISH
     #### ++ Setter ####
-    set.file = function(file) {
-      private$m.file <- file
+    set.file.path = function(file.path) {
+      private$m.file.path <- file.path
+    },#FINISH
+    set.file.name = function(file.name) {
+      private$m.file.name <- file.name
     },#FINISH
     set.type = function(type) {
       private$m.type <- type
     },#FINISH
     set.account = function(account) {
-      private$m.account <- sapply(account, .format.report.infos.account, USE.NAMES = F)
+      private$m.account <- sapply(account, .format.report.infos.account, USE.NAMES = T)
     },#FINISH
     set.group = function(group) {
       private$m.group <- group
     },#FINISH
     set.name = function(name) {
-      private$m.name <- sapply(name, .format.report.infos.name, USE.NAMES = F)
+      private$m.name <- sapply(name, .format.report.infos.name, USE.NAMES = T)
     },#FINISH
     set.broker = function(broker) {
-      private$m.broker <- sapply(broker, .format.report.infos.broker, USE.NAMES = F)
+      private$m.broker <- sapply(broker, .format.report.infos.broker, USE.NAMES = T)
     },#FINISH
     set.currency = function(currency) {
-      private$m.currency <- sapply(currency, .format.report.infos.currency, USE.NAMES = F)
+      private$m.currency <- sapply(currency, .format.report.infos.currency, USE.NAMES = T)
     },#FINISH
     set.leverage = function(leverage) {
-      private$m.leverage <- sapply(leverage, .format.report.infos.leverage, USE.NAMES = F)
+      private$m.leverage <- sapply(leverage, .format.report.infos.leverage, USE.NAMES = T)
     },#FINISH
     set.time = function(time) {
-      formated.time <- sapply(time, .format.report.infos.time, USE.NAMES = F)
+      formated.time <- sapply(time, .format.report.infos.time, USE.NAMES = T)
       if (is.numeric(formated.time)) {
         formated.time <- as.POSIXct(formated.time, origin = '1970-01-01', tz = 'GMT')
       }

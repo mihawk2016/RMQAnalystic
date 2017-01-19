@@ -47,21 +47,30 @@ MetaQuote.ReportTickets <- R6Class(
   public = list(
     initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
       all.tickets <- rbind(
-        private$build.group(money.table, 'MONEY'),
-        private$build.group(closed.table, 'CLOSED'),
-        private$build.group(open.table, 'OPEN'),
-        private$build.group(pending.table, 'PENDING'),
-        private$build.group(working.table, 'WORKING'),
+        private$build.group.tickets(money.table, 'MONEY'),
+        private$build.group.tickets(closed.table, 'CLOSED'),
+        private$build.group.tickets(open.table, 'OPEN'),
+        private$build.group.tickets(pending.table, 'PENDING'),
+        private$build.group.tickets(working.table, 'WORKING'),
         make.row.names = FALSE
       )
-      
-    }
+      print(all.tickets)
+      all.tickets
+    }#,
+    # get.tickets = function() {
+    #   
+    # }
   ),
   private = list(
     m.original = NULL,
-    build.group = function(table, group) {
+    build.group.tickets = function(table, group) {
       .build.tickets.group(table, group)
-    }
+    }#,
+    # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
+    #   # ''' sort dataframe with columns '''
+    #   # 2016-08-15: Done
+    #   dataframe[order(dataframe[, columns], decreasing = decreasing), ]
+    # })# FINISH
   )
 )
 
@@ -69,6 +78,9 @@ MetaQuote.ReportTickets <- R6Class(
   # ''' build tickets group '''
   # 2017-01-17: Version 0.2 add Comment & Exit check
   # 2017-01-17: Version 0.1
+  if (is.null(table)) {
+    return(NULL)
+  }
   group.lable <- TICKETS_GROUP[group]
   columns <- TICKETS_GROUP_COLUMNS[[group.lable]]
   table.columns <- colnames(table)
@@ -101,7 +113,7 @@ MetaQuote.ReportTickets <- R6Class(
   # 2017-01-17: Version 1.1 add support for comments type - data.frame
   # 2016-12-01: Version 1.0
   if (is.data.frame(comments)) {
-    comments <- comments[, 1]
+    comments <- unlist(comments)
   }
   comments <- toupper(comments)
   comments <- gsub('/| / ', '', comments)
