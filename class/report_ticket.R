@@ -1,6 +1,7 @@
 require(R6)
 require(compiler)
 
+
 #### DEFINES ####
 
 TICKETS_COLUMNS = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
@@ -27,6 +28,7 @@ names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 MetaQuote.ReportTickets <- R6Class(
   classname = 'MetaQuote Report Tickets',
   public = list(
+
 
     get.tickets = function() {
       private$m.tickets
@@ -56,6 +58,7 @@ MetaQuote.ReportTickets <- R6Class(
                           'CTIME', 'CPRICE'),
     m.columns.working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE'),
     
+
     build.group.tickets = function(table, group) {
       .build.tickets.group(table, private$get.group.columns(group), group, private$m.columns.uniform)
     },
@@ -88,6 +91,7 @@ MetaQuote.ReportTickets <- R6Class(
   if (nrow(table) == 0) {
     return(NULL)
   }
+
   table.columns <- colnames(table)
   table$GROUP <- group
   ## default 0 check

@@ -1,6 +1,7 @@
 require(R6)
 require(compiler)
 
+
 #### DEFINES ####
 
 REPORT_TYPE <- c(

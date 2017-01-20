@@ -3,6 +3,7 @@
 require(R6)
 require(compiler)
 
+
 #### FILE READER ####
 
 MQAnalystic <- R6Class(
