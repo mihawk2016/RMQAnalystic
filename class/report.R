@@ -94,7 +94,10 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
     init.tickets = function() {
       # ''' init tickets ''' ###
       # 2017-01-18: Version 0.1
+<<<<<<< HEAD
       # tickets.original <- MetaQuote.ReportTickets$new()
+=======
+>>>>>>> 6997a7b4216c8e11aff0aaa65d8b6471c68732dc
       item <- private$get.tickets.item()
       html.table <- private$get.html.table()
       tickets.table <- html.table[[2]]

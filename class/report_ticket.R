@@ -90,6 +90,7 @@ names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
 MetaQuote.ReportTickets <- R6Class(
   classname = 'MetaQuote Report Tickets',
   public = list(
+<<<<<<< HEAD
     # initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
     #   all.tickets <- rbind(
     #     private$build.group.tickets(money.table, 'Money'),
@@ -129,6 +130,26 @@ MetaQuote.ReportTickets <- R6Class(
                           'CTIME', 'CPRICE'),
     m.columns.working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE'),
     
+=======
+    initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
+      all.tickets <- rbind(
+        private$build.group.tickets(money.table, 'Money'),
+        private$build.group.tickets(closed.table, 'Closed'),
+        private$build.group.tickets(open.table, 'Open'),
+        private$build.group.tickets(pending.table, 'Pending'),
+        private$build.group.tickets(working.table, 'Working'),
+        make.row.names = FALSE
+      )
+      print(all.tickets)
+      all.tickets
+    }#,
+    # get.tickets = function() {
+    #   
+    # }
+  ),
+  private = list(
+    # m.original = NULL,
+>>>>>>> 6997a7b4216c8e11aff0aaa65d8b6471c68732dc
     build.group.tickets = function(table, group) {
       .build.tickets.group(table, private$get.group.columns(group), group, private$m.columns.uniform)
     },
@@ -161,6 +182,13 @@ MetaQuote.ReportTickets <- R6Class(
   if (nrow(table) == 0) {
     return(NULL)
   }
+<<<<<<< HEAD
+=======
+  if (nrow(table) == 0) {
+    return(NULL)
+  }
+  columns <- TICKETS_GROUP_COLUMNS[[group]]
+>>>>>>> 6997a7b4216c8e11aff0aaa65d8b6471c68732dc
   table.columns <- colnames(table)
   table$GROUP <- group
   ## default 0 check
