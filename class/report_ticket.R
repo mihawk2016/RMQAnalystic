@@ -19,89 +19,15 @@ TICKETS_GROUP_COLUMNS = list(
   'Working' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
 )
 names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
+
 #### REPORT TICKETS ####
 
-# MetaQuote.ReportTickets <- R6Class(
-#   classname = 'MetaQuote Report Tickets',
-#   public = list(
-#     initialize = function() {
-#       private$m.money.group <- MeatQuote.Tickets.Money$new()
-#       private$m.closed.group <- MeatQuote.Tickets.Closed$new()
-#       private$m.open.group <- MeatQuote.Tickets.Open$new()
-#       private$m.pending.group <- MeatQuote.Tickets.Pending$new()
-#       private$m.working.group <- MeatQuote.Tickets.Working$new()
-#     },
-#     get.groups = function(group) {
-#       if (missing(group)) {
-#         return(list(
-#           Money = private$m.money.group,
-#           Closed = private$m.closed.group,
-#           Open = private$m.open.group,
-#           Pending = private$m.pending.group,
-#           Working = private$m.working.group
-#         ))
-#       }
-#       if (length(group) > 1) {
-#         return(lapply(group, self$get.tickets))
-#       }
-#       switch(
-#         group,
-#         Money = private$m.money.group,
-#         Closed = private$m.closed.group,
-#         Open = private$m.open.group,
-#         Pending = private$m.pending.group,
-#         Working = private$m.working.group,
-#         NULL
-#       )
-#     },
-#     get.tickets = function(group) {
-#       switch(
-#         group,
-#         Money = private$m.money.group$get.tickets(),
-#         Closed = private$m.closed.group$get.tickets(),
-#         Open = private$m.open.group$get.tickets(),
-#         Pending = private$m.pending.group$get.tickets(),
-#         Working = private$m.working.group$get.tickets(),
-#         NULL
-#       )
-#     }
-#     # get.tickets = function() {
-#     #
-#     # }
-#   ),
-#   private = list(
-#     m.money.group,
-#     m.closed.group,
-#     m.open.group,
-#     m.pending.group,
-#     m.working.group,
-#     
-#     build.group.tickets = function(table, group) {
-#       .build.tickets.group(table, group)
-#     }#,
-#     # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
-#     #   # ''' sort dataframe with columns '''
-#     #   # 2016-08-15: Done
-#     #   dataframe[order(dataframe[, columns], decreasing = decreasing), ]
-#     # })# FINISH
-#   )
-# )
+
 
 MetaQuote.ReportTickets <- R6Class(
   classname = 'MetaQuote Report Tickets',
   public = list(
-    # initialize = function(money.table=NULL, closed.table=NULL, open.table=NULL, pending.table=NULL, working.table=NULL) {
-    #   all.tickets <- rbind(
-    #     private$build.group.tickets(money.table, 'Money'),
-    #     private$build.group.tickets(closed.table, 'Closed'),
-    #     private$build.group.tickets(open.table, 'Open'),
-    #     private$build.group.tickets(pending.table, 'Pending'),
-    #     private$build.group.tickets(working.table, 'Working'),
-    #     make.row.names = FALSE
-    #   )
-    #   print(all.tickets)
-    #   all.tickets
-    # },
+
     get.tickets = function() {
       private$m.tickets
     },
@@ -116,6 +42,7 @@ MetaQuote.ReportTickets <- R6Class(
       self$add.tickets(private$build.group.tickets(table, group))
     }
   ),
+
   private = list(
     m.tickets = NULL,
     m.columns.uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',

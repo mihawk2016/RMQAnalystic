@@ -39,18 +39,35 @@ MetaQuote.Report <- R6Class(
       }
       private$m.infos$set(member, value)
     },
-    get.tickets.original = function() {
-      private$m.tickets.original
+    get.tickets = function(type='original') {
+      switch(
+        type,
+        original = private$m.tickets.original
+      )
     },
-    set.tickets.original = function(tickets) {
-      private$m.tickets.original <- tickets
+    set.tickets = function(type='original', tickets) {
+      switch(
+        type,
+        original = private$m.tickets.original
+      ) <- tickets
     }
     
     
   ),
   private = list(
     m.infos = NULL,
-    m.tickets.original = NULL
+    m.tickets.original = NULL,
+    
+    
+    init.tickets.original = function() {
+      private$m.tickets.original <- MetaQuote.ReportTickets$new()
+    },
+    add.tickets.table = function(table, group) {
+      if (is.null(self$get.tickets('original'))) {
+        private$init.tickets.original()
+      }
+      private$m.tickets.original$add.table(table, group)
+    }
     
   )
 )
@@ -94,7 +111,6 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
     init.tickets = function() {
       # ''' init tickets ''' ###
       # 2017-01-18: Version 0.1
-      # tickets.original <- MetaQuote.ReportTickets$new()
       item <- private$get.tickets.item()
       html.table <- private$get.html.table()
       tickets.table <- html.table[[2]]
@@ -102,9 +118,7 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       tickets <- subset(tickets.table, subset = type != 'modify', select = -c(deal, balance))
       ## pending tickets ##
       pending.tickets.close.part.index <- which(tickets$type == 'delete')
-      if (length(pending.tickets.close.part.index) == 0) {
-        tickets.pending.temp <- NULL
-      } else {
+      if (length(pending.tickets.close.part.index) > 0) {
         pending.tickets.close.part <- tickets[pending.tickets.close.part.index, ]
         pending.tickets.tickets <- pending.tickets.close.part$tickets
         tickets <- tickets[-pending.tickets.close.part.index, ]
@@ -116,6 +130,7 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
                                             'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')
         tickets.pending.temp$ITEM <- item
         tickets.pending.temp$COMMENT <- 'cancelled'
+        private$add.tickets.table(tickets.pending.temp, 'Pending')
       }
       ## closed tickets ##
       closed.tickets.pending.index <- which(grepl('(buy|sell) (limit|stop)', tickets$type))
@@ -134,6 +149,7 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       }
       colnames(tickets.closed.temp) <- c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
                                          'CTIME', 'COMMENT', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')
+      private$add.tickets.table(tickets.closed.temp, 'Closed')
       ## money tickets ##
       tickets.money.temp <- data.frame(
         stringsAsFactors = F,
@@ -141,11 +157,12 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
         private$get.tickets.begin(),
         private$get.tickets.deposit(html.table[[1]])
       )
-      colnames(tickets.money.temp) <- TICKETS_GROUP_COLUMNS[['Money']]
-      
-      MetaQuote.ReportTickets$new(money.table = tickets.money.temp,
-                                  closed.table = tickets.closed.temp,
-                                  pending.table = tickets.pending.temp)
+      colnames(tickets.money.temp) <- c('TICKET', 'OTIME', 'PROFIT')
+      private$add.tickets.table(tickets.money.temp, 'Money')
+      self$get.tickets('original')
+      # MetaQuote.ReportTickets$new(money.table = tickets.money.temp,
+      #                             closed.table = tickets.closed.temp,
+      #                             pending.table = tickets.pending.temp)
       
       # part.closed.tickets.index <- with(tickets.closed.temp, which())
       # if (length(part.closed.tickets.index) > 0) {
