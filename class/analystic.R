@@ -4,7 +4,7 @@ require(R6)
 require(compiler)
 
 
-#### FILE READER ####
+#### MQAnalystic ####
 
 MQAnalystic <- R6Class(
   classname = 'MetaQuote Analystic',
@@ -21,17 +21,8 @@ MQAnalystic <- R6Class(
       # ''' clear all files '''
       # 2017-01-13: Version 0.1
       private$m.unsupported.files <- NULL
-      private$m.supported.files <- NULL
+      private$m.reports <- NULL
     },# TESTING
-    get.reports = function(index) {
-      # ''' get supported reports '''
-      # 2017-01-14: Version: 1.0
-      if (missing(index)) {
-        private$m.supported.files
-      } else {
-        private$m.supported.files[[index]]
-      }
-    },# FINISH
     get.unsupported.file = function(index) {
       # ''' get unsupported files '''
       # 2017-01-14: Version: 0.1
@@ -40,11 +31,78 @@ MQAnalystic <- R6Class(
       } else {
         private$m.unsupported.files[[index]]
       }
-    } # TESTING
+    },# TESTING
+    get.select.index = function() {
+      private$m.select.index
+    },
+    set.select.index = function(index) {
+      if (length(index) < 1) {
+        return(NULL)
+      }
+      private$m.select.index <- index
+    },
+    set.analyzing.report = function() {
+      index <- self$get.select.index()
+      if (is.null(index)) {
+        return(NULL)
+      }
+      private$merge.reports(self$get.reports(index))
+      #### ToDo ####
+    },
+    get.reports = function(index) {
+      # ''' get supported reports '''
+      # 2017-01-14: Version: 1.0
+      if (missing(index)) {
+        private$m.reports
+      } else {
+        private$m.reports[index]
+      }
+    },# FINISH
+    TESTING = function() {
+      # ''' RIGHT NOW JUST FOR TESTING '''
+      # 2017-01-21: Version
+      reports = self$get.reports(c(1, 10))
+      lapply(reports, function(report) {
+        r <- private$report.init.tickets(report)
+        print(r$get.tickets())
+      })
+      
+    }
   ),
   private = list(
+    ## CONFIG ##
+    m.tickets.columns = list(
+      Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                  'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
+      Money = c('TICKET', 'OTIME', 'PROFIT'),
+      Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                 'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+      Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+               'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+      Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                  'CTIME', 'CPRICE'),
+      Working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
+    ),
+    
+    ## MEMBER ##
     m.unsupported.files = NULL,
-    m.supported.files = NULL,
+    m.reports = NULL,
+    m.select.index = NULL,
+    m.analyzing.report = NULL,
+    
+    get.group.columns = function(group) {
+      switch(
+        group,
+        Money = private$m.columns.money,
+        Closed = private$m.columns.closed,
+        Open = private$m.columns.open,
+        Pending = private$m.columns.pending,
+        Working = private$m.columns.working,
+        NULL
+      )
+    },
+    
+    
     
     input.file = function(file.path) {
       # ''' input one file '''
@@ -52,18 +110,32 @@ MQAnalystic <- R6Class(
       file.name <- .file.name(file.path)
       file.extension <- .file.extension(file.name)
       report <- .read.file(file.path, file.name, file.extension)
-      ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.supported.file(report))
+      ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.reports(report))
     },
-    add.supported.file = function(file) {
-      # ''' add supported files '''
-      # 2017-01-13: Version 0.1
-      private$m.supported.files <- c(private$m.supported.files, file)
-    },# TESTING
     add.unsupported.file = function(file) {
       # ''' add unsupported files '''
       # 2017-01-13: Version 0.1
       private$m.unsupported.files <- c(private$m.unsupported.files, file)
-    } # TESTING
+    },# TESTING
+    add.reports = function(file) {
+      # ''' add supported files '''
+      # 2017-01-13: Version 0.1
+      private$m.reports <- c(private$m.reports, file)
+    },# TESTING
+    merge.reports = function(reports) {
+      # ''' merge reports '''
+      # 2017-01-21: Version 0.1
+      if (length(reports) == 1) {
+        return(reports[[1]])
+      }
+      report <- MetaQuote.Report$new()
+      infos <- do.call(rbind, lapply(reports, FUN = function(report) report$get.infos.dataframe()))
+    },
+    report.init.tickets = function(report) {
+      # ''' merge reports '''
+      # 2017-01-21: Version 1.0
+      report$init.tickets(private$m.tickets.columns)
+    } # FINISH
   )
 )
 

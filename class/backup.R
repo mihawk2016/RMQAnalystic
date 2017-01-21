@@ -11,22 +11,6 @@ require(compiler)
 
 
 
-.html.mt5.trade.tickets <- cmpfun(function(html.table) {
-  # ''' get mt5 strategy tickets '''
-  # 2016-08-17: Working
-  first_col <- html.table$V1
-  spaces_index <- which(first_col == '')
-  orders <- .html.mt5.trade_ea.tickets.group(html.table, first_col, spaces_index, 'Orders')
-  positions <- .html.mt5.trade_ea.tickets.group(html.table, first_col, spaces_index, 'Trade Positions')
-  workings <- .html.mt5.trade_ea.tickets.group(html.table, first_col, spaces_index, 'Working Orders')
-  deals <- .html.mt5.trade_ea.tickets.group(html.table, first_col, spaces_index, 'Deals')
-  positions.market.price <- .html.mt5.trade.tickets.positions.market.price(positions)
-  .build.report.tickets.group(
-    pending = .html.mt5.trade.tickets.pending(orders),
-    working = .html.mt5.trade.tickets.working(workings),
-    closed = .html.mt5.trade_ea.tickets.money_closed_open(deals, positions.market.price)
-  )
-})# FINISH
 
 
 

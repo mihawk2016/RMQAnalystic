@@ -8,7 +8,7 @@ lapply(file.path('./class', dir('./class')), source)
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
 files
 
-test.number <- 3
+test.number <- 1:10
 
 file <- files[test.number]
 
@@ -18,11 +18,26 @@ A <- MQAnalystic$new()
 
 A$add.files(file)
 
-A$get.unsupported.file()
+# A$get.unsupported.file()
+A$set.select.index(1:10)
 
-A$get.reports() -> B
+TEST <- A$TESTING()[[1]]
 
-B[[1]] -> B
+
+
+# REPORT <- A$get.reports(1)
+
+
+
+
+# ANALYZER <- A$set.analyzing.report()
+
+
+
+
+# A$get.reports() -> B
+
+# B[[1]] -> B
 # print(B$get.infos.dataframe())
 
-print(E <- B$init.tickets())
+# print(E <- B$init.tickets())
