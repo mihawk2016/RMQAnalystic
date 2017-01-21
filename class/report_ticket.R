@@ -1,77 +1,53 @@
 require(R6)
 require(compiler)
 
-
-#### DEFINES ####
-
-TICKETS_COLUMNS = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                    'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT')#, 'EXIT')
-
-TICKETS_GROUP = c('Money', 'Closed', 'Open', 'Pending', 'Working')
-
-TICKETS_GROUP_COLUMNS = list(
-  'Money' = c('TICKET', 'OTIME', 'PROFIT'),
-  'Closed' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-               'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-  'Open' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-             'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-  'Pending' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                'CTIME', 'CPRICE'),
-  'Working' = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
-)
-names(TICKETS_GROUP_COLUMNS) <- TICKETS_GROUP
-
 #### REPORT TICKETS ####
 
-
-
 MetaQuote.ReportTickets <- R6Class(
+  # ''' Report Tickets in many phase '''
+  # 2017-01-21: Version 0.2: set 3 types of tickets
   classname = 'MetaQuote Report Tickets',
   public = list(
 
 
-    get.tickets = function() {
-      private$m.tickets
+    get.tickets = function(type) {
+      # ''' get tickets '''
+      # 2017-01-21: Version 0.1
+      switch(
+        type,
+        'raw' = private$m.tickets.raw,
+        'support' = private$m.tickets.support
+      )
+      
     },
-    set.tickets = function(tickets) {
-      private$m.tickets <- tickets
+    set.tickets = function(type, tickets) {
+      switch(
+        type,
+        'raw' = private$m.tickets.raw <- tickets,
+        'support' = private$m.tickets.support <- tickets
+      )
+      
     },
     add.tickets = function(tickets) {
-      new.tickets <- rbind(self$get.tickets(), tickets)
-      self$set.tickets(new.tickets)
+      new.tickets <- rbind(self$get.tickets('raw'), tickets)
+      self$set.tickets('raw', new.tickets)
     },
-    add.table = function(table, group) {
-      self$add.tickets(private$build.group.tickets(table, group))
-    }
+    add.table = function(table, group, columns, uniform.columns) {
+      self$add.tickets(private$build.group.tickets(table, group, columns, uniform.columns))
+    },
+    item.unique = function(tickets=private$m.tickets.raw) {
+      # ''' get items of tickets '''
+      # 2017-01-21: Version 1.1 use unique() for level - factor method
+      unique(tickets$Item)
+    } # FINISH
   ),
 
   private = list(
-    m.tickets = NULL,
-    m.columns.uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                          'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
-    m.columns.money = c('TICKET', 'OTIME', 'PROFIT'),
-    m.columns.closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                         'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-    m.columns.open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                       'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-    m.columns.pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                          'CTIME', 'CPRICE'),
-    m.columns.working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE'),
+    m.tickets.raw = NULL,
+    m.tickets.support = NULL,
     
-
-    build.group.tickets = function(table, group) {
-      .build.tickets.group(table, private$get.group.columns(group), group, private$m.columns.uniform)
-    },
-    get.group.columns = function(group) {
-      switch(
-        group,
-        Money = private$m.columns.money,
-        Closed = private$m.columns.closed,
-        Open = private$m.columns.open,
-        Pending = private$m.columns.pending,
-        Working = private$m.columns.working,
-        NULL
-      )
+    build.group.tickets = function(table, group, columns, uniform.columns) {
+      .build.tickets.group(table, group, columns, uniform.columns)
     }
     # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
     #   # ''' sort dataframe with columns '''
@@ -81,17 +57,14 @@ MetaQuote.ReportTickets <- R6Class(
   )
 )
 
-.build.tickets.group = cmpfun(function(table, columns, group, uniform.columns) {
+.build.tickets.group = cmpfun(function(table, group, columns, uniform.columns) {
   # ''' build tickets group '''
+  # 2017-01-21: Version 1.0 change logic expr to || short way connection
   # 2017-01-17: Version 0.2 add Comment
   # 2017-01-17: Version 0.1
-  if (is.null(table)) {
+  if (is.null(table) || nrow(table) == 0) {
     return(NULL) 
   }
-  if (nrow(table) == 0) {
-    return(NULL)
-  }
-
   table.columns <- colnames(table)
   table$GROUP <- group
   ## default 0 check
@@ -112,7 +85,7 @@ MetaQuote.ReportTickets <- R6Class(
     cbind(table, matrix(data = NA, ncol = length(na.columns), dimnames = list(NULL, c(na.columns)))),
     error = function(e) table
   )
-})
+})# TESTING
 
 .report.tickets.exit <- cmpfun(function(comments) {
   # ''' get report tickets column: exit from comment'''
@@ -129,51 +102,6 @@ MetaQuote.ReportTickets <- R6Class(
   exit[grep('TP', comments)] <- 'TP'
   exit
 })# FINISH
-
-#### + REPORT TICKETS GROUP ####
-
-MetaQuote.ReportTickets.Group <- R6Class(
-  classname = 'MetaQuote Report Tickets Group',
-  public = list(
-    
-  ),
-  private = list(
-    # m.original = NULL
-    
-  )
-)
-
-#### ++ REPORT TICKETS GROUP - MONEY ####
-
-MetaQuote.ReportTickets.Money <- R6Class(
-  classname = 'MetaQuote Report Tickets Group - Money',
-  public = list(
-    
-  ),
-  private = list(
-    m.columns = c('Tickets')
-    
-  )
-)
-
-# .build.report.tickets.money.from.columns <- cmpfun(function(ticket, otime, profit, comment = '') {
-#   # ''' build report tickets: money, from columns '''
-#   # 2016-08-16: Done
-#   .build.report.tickets(
-#     ticket = ticket,
-#     otime = otime,
-#     profit = profit,
-#     group = 'MONEY',
-#     comment = comment
-#   )
-# })# FINISH
-
-
-
-
-
-
-
 
 .format.time <- cmpfun(function(time) {
   # ''' format time '''
@@ -196,7 +124,7 @@ MetaQuote.ReportTickets.Money <- R6Class(
     return(as.POSIXct(time, origin = '1970-01-01', tz = 'GMT'))
   }
   NA
-})
+})# TESTING
 
 .format.html.mt4.trade.time <- cmpfun(function(time) {
   # ''' format html mt4 trade time '''
@@ -206,4 +134,4 @@ MetaQuote.ReportTickets.Money <- R6Class(
   new_time <- as.POSIXct(time, '%Y %b %d, %H:%M', tz = 'GMT')
   Sys.setlocale('LC_TIME', local_time)
   new_time
-})
+})# TESTING
