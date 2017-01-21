@@ -6,20 +6,6 @@ require(compiler)
 #### READ INPUT FILES ####
 
 
-#### ++ READ HTML MT5 EA ####
-
-
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> d5bda6f2cffd48c3f25f4f9e605d6fde61636d07
-
-
-
-
-
 #### BUILD REPORT ####
 
 
@@ -62,10 +48,6 @@ require(compiler)
   NA
 })# FINISH
 
-
-
-
-
 .format.report.tickets.string <- cmpfun(function(string) {
   # ''' reform report tickets column: string '''
   # 2016-08-16: FINISH
@@ -84,4 +66,3 @@ require(compiler)
   }
   NA
 })# FINISH
-
