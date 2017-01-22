@@ -15,17 +15,7 @@ require(compiler)
 
 .build.report.tickets.group <- cmpfun(function(closed = NULL, open = NULL, money = NULL, pending = NULL, working = NULL) {
   # ''' build all report tickets groups'''
-  # 2016-08-14: Done
-  # 2016-08-16: Change to rbind.data.frame type, it's easy to sort or merge
-  #@2016-08-14
-  #list(
-  #Closed = closed,
-  #Open = open,
-  #Money = money,
-  #Pending = pending,
-  #Working = working
-  #)
-  #@2016-08-16
+  # 2016-08-14: 
   all.tickets <- rbind(money, closed, open, pending, working, make.row.names = F)
   .sort.dataframe(within(all.tickets, CTime <- .format.report.tickets.time(CTime)), 'OTime')
 })# FINISH
