@@ -851,3 +851,5 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
     } # FINISH
   )
 )
+
+

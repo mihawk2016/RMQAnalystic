@@ -701,11 +701,6 @@ build.symbol <- cmpfun(function(currency1, currency2, support.symbols = rownames
 
 #### TickValue ####
 
-calculate.profit.from.tickvalue_volume_pips <- cmpfun(function(tickvalue, volume, pips, format.digit = 2) {
-  # ''' calculate profit from para: tickvalue, volume, pips '''
-  # 2016-08-15: Done
-  round(tickvalue * volume * pips, format.digit)
-})# 2016-08-15: Done
 
 calculate.profit.from.tickets.columns <- cmpfun(function(symbol, time, volume, type, open.price, close.price, support.symbols.table, timeframe = 'M1', format.digit = 2, db = c('mysql.old', 'mysql.new', 'influxdb')) {
   # ''' calculate profit from tickets columns'''
@@ -759,12 +754,7 @@ calculate.tickvalue <- cmpfun(function(symbols, time, timeframe = 'M1', support.
   return(NULL)
 })# 2016-08-15: TESTING
 
-calculate.pips <- cmpfun(function(symbol, type, open.price, close.price, support.symbols.table) {
-  # ''' calculate pips '''
-  # 2016-08-15: TESTING
-  diffprice <- ifelse(type == 'BUY', close.price - open.price, open.price - close.price)
-  diffprice * 10 ^ support.symbols.table[symbol, 'Digit']
-})# 2016-08-15: TESTING
+
 
 check.overnight.for.swap <- cmpfun(function(close.time, open.time) {
   # ''' check or over night '''

@@ -48,6 +48,10 @@ MetaQuote.ReportTickets <- R6Class(
     
     build.group.tickets = function(table, group, columns, uniform.columns) {
       .build.tickets.group(table, group, columns, uniform.columns)
+    },
+    calculate.profit = function() {
+      #### ToDo ####
+      
     }
     # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
     #   # ''' sort dataframe with columns '''
