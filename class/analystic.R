@@ -8,60 +8,162 @@ require(compiler)
 
 MQAnalystic <- R6Class(
   classname = 'MetaQuote Analystic',
+  #### + PUBLIC ####
   public = list(
     initialize = function() {
-      self$set.support.symbol.table()
+      # ''' initialize '''
+      # 2017-01-23: ToDo
+      private$set.DataCenter()
+      private$set.tickets.columns()
+      private$set.default.currency()
+      private$set.default.leverage()
+      private$set.symbol.table()
+
     },# FINISH
-    ## Supprt Symbol Table ##
-    get.support.symbol.table = function() {
-      if (is.null(private$m.support.symbol.table)) {
-        return(self$set.support.symbol.table())
+    #### ++ Getter & Setter ####
+    
+    #### +++ DataCenter ####
+    get.DataCenter = function() {
+      # ''' get DataCenter '''
+      # 2017-01-23: Version 1.0
+      if (is.null(private$m.DataCenter)) {
+        self$set.DataCenter()
       }
-      private$m.support.symbol.table
-    },
-    set.support.symbol.table = function(support.symbol.table) {
-      if (missing(support.symbol.table)) {
-        support.symbol.table <- get(load('./symbols.rdata'))
+      private$m.DataCenter
+    },# FINISH
+    set.DataCenter = function(DataCenter=private$default.DataCenter()) {
+      # ''' set DataCenter '''
+      # 2017-01-23: Version 1.0
+      private$m.DataCenter <- DataCenter
+    },# FINISH
+    
+    #### +++ tickets columns ####
+    get.tickets.columns = function() {
+      # ''' get tickets columns '''
+      # 2017-01-23: Version 1.0
+      if (is.null(private$m.tickets.columns)) {
+        self$set.tickets.columns()
       }
-      # if (!identical(support.symbol.table, ))
-      private$m.support.symbol.table <- support.symbol.table
-    },
-    save.support.symbol.table = function(support.symbol.table) {
-      save(self$set.support.symbol.table(), file = './symbols.rdata')
-    },
-    get.support.symbols = function() {
-      row.names(self$get.support.symbol.table())
-    },
-    ## files ##
+      private$m.tickets.columns
+    },# FINISH
+    set.tickets.columns = function(tickets.columns=private$default.tickets.columns()) {
+      # ''' set tickets columns '''
+      # 2017-01-23: Version 1.0
+      private$m.tickets.columns <- tickets.columns
+    },# FINISH
+    
+    #### +++ default currency ####
+    get.default.currency = function() {
+      # ''' get default currency '''
+      # 2017-01-23: Version 1.0
+      if (is.null(private$m.default.currency)) {
+        self$set.default.currency()
+      }
+      private$m.default.currency
+    },# FINISH
+    set.default.currency = function(default.currency=private$default.currency()) {
+      # ''' set default currency '''
+      # 2017-01-23: Version 1.0
+      private$m.default.currency <- default.currency
+    },# FINISH
+    
+    #### +++ default leverage ####
+    get.default.leverage = function() {
+      # ''' get default leverage '''
+      # 2017-01-23: Version 1.0
+      if (is.null(private$m.default.leverage)) {
+        self$set.default.leverage()
+      }
+      private$m.default.leverage
+    },# FINISH
+    set.default.leverage = function(default.leverage=private$default.leverage()) {
+      # ''' set default leverage '''
+      # 2017-01-23: Version 1.0
+      private$m.default.leverage <- default.leverage
+    },# FINISH
+    
+    #### +++ selected index ####
+    get.selected.index = function() {
+      # ''' get selected index '''
+      # 2017-01-23: Version 1.0
+      private$m.selected.index
+    },# FINISH
+    set.selected.index = function(index) {
+      # ''' set selected index '''
+      # 2017-01-23: Version 1.0
+      if (length(index) < 1) {
+        return(NULL)
+      }
+      private$m.selected.index <- index
+    },# FINISH
+
+    #### +++ symbol table ####
+    get.symbol.table = function() {
+      # ''' get selected index '''
+      # 2017-01-23: Version 1.0
+      if (is.null(private$m.symbol.table)) {
+        self$set.symbol.table()
+      }
+      private$m.symbol.table
+    },# FINISH
+    set.symbol.table = function(symbol.table=private$default.symbol.table()) {
+      # ''' set selected index '''
+      # 2017-01-23: Version 1.0
+      private$m.symbol.table <- symbol.table
+    },# FINISH
+    
+    
+    
+    #### ++ PUBLIC ACTIONS ####
+    
+    #### +++ files ####
     add.files = function(file.path) {
       # ''' add files '''
-      # 2017-01-13: Version 0.1
+      # 2017-01-13: Version 1.0
       lapply(file.path, FUN = private$input.file)
-    },# TESTING
+    },# FINISH
     clear.files = function() {
       # ''' clear all files '''
-      # 2017-01-13: Version 0.1
+      # 2017-01-13: Version 1.0
       private$m.unsupported.files <- NULL
       private$m.reports <- NULL
-    },# TESTING
-    get.unsupported.file = function(index) {
+      private$m.selected.index <- NULL
+    },# FINISH
+    get.unsupported.files = function(index) {
       # ''' get unsupported files '''
-      # 2017-01-14: Version: 0.1
+      # 2017-01-14: Version: 1.0
       if (missing(index)) {
         private$m.unsupported.files
       } else {
         private$m.unsupported.files[[index]]
       }
-    },# TESTING
-    get.select.index = function() {
-      private$m.select.index
-    },
-    set.select.index = function(index) {
-      if (length(index) < 1) {
+    },# FINISH
+    
+    #### +++ analystics ####
+    
+    #### +++ output ####
+    
+    #### ++ BEHAVIOR ####
+    one.by.one.do = function(fun) {
+      # ''' do fun one by one reports '''
+      # 2017-01-23: Version: 0.1
+      selected.reports <- private$get.selected.Reports()
+      if (is.null(selected.reports)) {
         return(NULL)
       }
-      private$m.select.index <- index
+      lapply(selected.reports, fun)
     },
+    merge.do = function(fun) {
+      # ''' do fun by merge reports '''
+      # 2017-01-23: Version: 0.1
+      merged.reports <- private$get.merged.Reports()
+      if (is.null(merged.reports)) {
+        return(NULL)
+      }
+      fun(merged.reports)
+    },
+    
+    
     set.analyzing.report = function() {
       index <- self$get.select.index()
       if (is.null(index)) {
@@ -79,6 +181,8 @@ MQAnalystic <- R6Class(
         private$m.reports[index]
       }
     },# FINISH
+    
+    #### TESTING ####
     TESTING = function() {
       # ''' RIGHT NOW JUST FOR TESTING '''
       # 2017-01-21: Version
@@ -90,50 +194,120 @@ MQAnalystic <- R6Class(
       
     }
   ),
+  #### + PRIVATE ####
   private = list(
-    ## CONFIG ##
-    m.tickets.columns = list(
-      Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                  'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
-      Money = c('TICKET', 'OTIME', 'PROFIT'),
-      Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                 'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-      Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-               'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-      Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-                  'CTIME', 'CPRICE'),
-      Working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
-    ),
-    m.support.symbol.table = NULL,
-    ## MEMBER ##
+    #### ++ CONFIG ####
+    m.DataCenter = NULL,
+    m.tickets.columns = NULL,
+    m.default.currency = NULL,
+    m.default.leverage = NULL,
+    m.symbol.table = NULL,
+    
+    #### ++ MEMBER ####
     m.unsupported.files = NULL,
-    m.reports = NULL,
-    m.select.index = NULL,
-    m.analyzing.report = NULL,
+    m.Reports = NULL,
+    m.selected.index = NULL,
     
     
+    #### ++ DEFAULT FUNCTIONS ####
     
+    #### +++ DataCenter ####
+    default.DataCenter = function() {
+      # ''' default DataCenter '''
+      # 2017-01-23: Version 1.0
+      DataCenter$new()
+    },# FINISH
+    
+    #### +++ tickets columns ####
+    default.tickets.columns = function() {
+      # ''' default tickets columns '''
+      # 2017-01-23: Version 1.0
+      list(
+        Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                    'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
+        Money = c('TICKET', 'OTIME', 'PROFIT'),
+        Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                   'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+        Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+        Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                    'CTIME', 'CPRICE'),
+        Working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
+      )
+    },# FINISH
+    
+    #### +++ default currency ####
+    default.currency = function() {
+      # ''' default currency '''
+      # 2017-01-23: Version 1.0
+      'USD'
+    },# FINISH
+    
+    #### +++ default leverage ####
+    default.leverage = function() {
+      # ''' default leverage '''
+      # 2017-01-23: Version 1.0
+      100
+    },# FINISH
+    
+    #### +++ default symbol table ####
+    default.symbol.table = function() {
+      # ''' default symbol table '''
+      # 2017-01-23: Version 1.0
+      data.frame(
+        stringsAsFactors = F,
+        row.names = c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
+                      'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
+                      'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD'),
+        SPREAD = c(40,40,40,40,20,40,40,40,40,40,40,40,40,40,20,40,20,40,40,40,20,40,40,40,20,20,20,40,50,500),
+        DIGITS = c(5,5,3,5,5,5,3,3,5,5,5,5,3,5,5,5,5,5,3,5,5,5,5,3,5,5,5,3,3,2),
+        CON_SIZE = c(rep(100000, 28), 1000, 100)
+      )
+    },# FINISH
+    
+    
+    #### ++ PRIVATE ACTIONS ####
+    
+    #### +++ files #####
     input.file = function(file.path) {
       # ''' input one file '''
       # 2017-01-14: Version 0.1
       file.name <- .file.name(file.path)
       file.extension <- .file.extension(file.name)
       report <- .read.file(file.path, file.name, file.extension)
-      ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.reports(report))
+      ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.Reports(report))
     },
     add.unsupported.file = function(file) {
       # ''' add unsupported files '''
       # 2017-01-13: Version 0.1
       private$m.unsupported.files <- c(private$m.unsupported.files, file)
     },# TESTING
-    add.reports = function(file) {
+    add.Reports = function(file) {
       # ''' add supported files '''
       # 2017-01-13: Version 0.1
-      private$m.reports <- c(private$m.reports, file)
+      private$m.Reports <- c(private$m.Reports, file)
     },# TESTING
-    merge.reports = function(reports) {
-      # ''' merge reports '''
-      # 2017-01-21: Version 
+
+    #### +++ Reports ####
+    get.selected.Reports = function() {
+      # ''' get selected index for Reports '''
+      # 2017-01-13: Version 0.1
+      index <- self$get.selected.index()
+      if (is.null(index) || length(index) == 0) {
+        return(NULL)
+      }
+      self$get.Reports()[index]
+    },
+    get.selected.merge.Reports = function() {
+      # ''' get merged reports '''
+      # 2017-01-21: Version
+      #### ToDo ####
+      # index <- self$get.selected.index()
+      # if (is.null(index) || length(index) == 0) {
+      #   return(NULL)
+      # }
+      
+      self$one.by.one.do()
       lapply(reports, FUN = function(report) report$get.raw.tickets())
       if (length(reports) == 1) {
         return(reports[[1]])
@@ -141,12 +315,44 @@ MQAnalystic <- R6Class(
       report <- MetaQuote.Report$new()
       infos <- do.call(rbind, lapply(reports, FUN = function(report) report$get.infos.dataframe()))
       #### ToDo ####
-    },
-    report.init.tickets = function(report) {
-      # ''' merge reports '''
-      # 2017-01-21: Version 1.0
-      report$init.tickets(private$m.tickets.columns)
-    } # FINISH
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ## CONFIG ##
+    
+    ## MEMBER ##
+    m.analyzing.report = NULL,
+    
+    
+    
+    default.symbol.table = function() {
+      # ''' '''
+    }#,
+    
+
+    # merge.reports = function(reports) {
+    #   # ''' merge reports '''
+    #   # 2017-01-21: Version 
+    #   lapply(reports, FUN = function(report) report$get.raw.tickets())
+    #   if (length(reports) == 1) {
+    #     return(reports[[1]])
+    #   }
+    #   report <- MetaQuote.Report$new()
+    #   infos <- do.call(rbind, lapply(reports, FUN = function(report) report$get.infos.dataframe()))
+    #   #### ToDo ####
+    # }#,
+    # report.init.tickets = function(report) {
+    #   # ''' merge reports '''
+    #   # 2017-01-21: Version 1.0
+    #   report$init.tickets(private$m.tickets.columns)
+    # } # FINISH
   )
 )
 
@@ -168,7 +374,7 @@ MQAnalystic <- R6Class(
 
 .read.file <- cmpfun(function(file.path, file.name, file.extension) {
   # ''' read file '''
-  # 2017-01-13:
+  # 2017-01-13: ToDo
   if (grepl('htm|html', file.extension)) {
     html.parse <- htmlParse(file.path, encoding = 'UTF-8')
     html.title <- xmlValue(getNodeSet(html.parse,'//title')[[1]])

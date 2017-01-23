@@ -79,7 +79,7 @@ Symbol.Table <- R6Class(
       # ''' get tick value '''
       # 2017-01-23: Version 0.1
       base.currency <- private$symbol.base.currency(symbol)
-      tick.value.point <- with(symbol.table, CON_SIZE * 10 ^ -DIGITS)
+      tick.value.point <- with(symbol.table[symbol, ], CON_SIZE * 10 ^ -DIGITS)
       if (base.currency == currency) {
         return(tick.value.point)
       }
@@ -95,7 +95,7 @@ Symbol.Table <- R6Class(
       # ''' get margin required '''
       # 2017-01-23: Version 0.1
       quote.currency <- private$symbol.quote.currency(symbol)
-      margin.required.point <- with(symbol.table, CON_SIZE / leverage)
+      margin.required.point <- with(symbol.table[symbol, ], CON_SIZE / leverage)
       if (quote.currency == currency) {
         return(margin.required.point)
       }

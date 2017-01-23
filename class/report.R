@@ -58,7 +58,7 @@ MetaQuote.Report <- R6Class(
       }
       tickets.member$get.tickets('raw')
     },
-    set.raw.tickets = function(tickets) {
+    set.raw.tickets = function(tickets=private$init.raw.tickets()) {
       tickets.member <- self$get.tickets()
       tickets.member$set.tickets('raw', tickets)
     },
@@ -136,9 +136,6 @@ MetaQuote.HTML.Report <- R6Class(
   classname = 'MetaQuote HTML Report',
   inherit = MetaQuote.Report,
   public = list(
-    # initialize = function() {
-    #   
-    # },
     init.infos = function(file.path, file.name) {
       super$init.infos(file.path, file.name)
     }

@@ -16,7 +16,7 @@ MetaQuote.ReportTickets <- R6Class(
       switch(
         type,
         'raw' = private$m.tickets.raw,
-        'support' = private$m.tickets.support
+        'supported' = private$m.tickets.supported
       )
       
     },
@@ -24,7 +24,7 @@ MetaQuote.ReportTickets <- R6Class(
       switch(
         type,
         'raw' = private$m.tickets.raw <- tickets,
-        'support' = private$m.tickets.support <- tickets
+        'supported' = private$m.tickets.supported <- tickets
       )
       
     },
@@ -44,7 +44,7 @@ MetaQuote.ReportTickets <- R6Class(
 
   private = list(
     m.tickets.raw = NULL,
-    m.tickets.support = NULL,
+    m.tickets.supported = NULL,
     
     build.group.tickets = function(table, group, columns, uniform.columns) {
       .build.tickets.group(table, group, columns, uniform.columns)

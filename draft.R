@@ -1,5 +1,21 @@
+library(R6)
 
+A <- R6Class(
+  public = list(
+    a = 1,
+    initialize = function(x) {
+      print(private$m.a)
+    }
+  ),
+  private = list(
+    m.a = 'aaa'
+  )
+)
 
+x1 <- A$new()
+x2 <- x1
+x2$a <- 3
+print(x1$a)
 
 # A <- R6Class(
 #   public = list(
