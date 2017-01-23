@@ -11,8 +11,8 @@ initialize.report <- cmpfun(function(report, default.currency = 'USD', default.l
   # 2016-08-17: TESTING
   within(report, {
     support.symbols <- rownames(support.symbols.table)
-    Currency <- report.info.currency(Info, default.currency)
-    Leverage <- report.info.leverage(Info, default.leverage)
+    # Currency <- report.info.currency(Info, default.currency)
+    # Leverage <- report.info.leverage(Info, default.leverage)
     Item_Symbol.Mapping <- report.item_symbol.mapping(report.tickets.items(Tickets), support.symbols)
     Symbols.Table <- report.symbols.table(Item_Symbol.Mapping, default.currency, default.leverage, support.symbols.table)
     Tickets <- report.tickets.initialize(Tickets, Item_Symbol.Mapping, Symbols.Table, timeframe, format.digit, db)
@@ -91,111 +91,6 @@ report.tickets.recalculate <- cmpfun(function(tickets, support.symbols.table, ti
   within(tickets, Profit[need.recal.index] <- recal.profit)
 })# 2016-08-19: TESTING
 
-report.info.currency <- cmpfun(function(report.info, default = 'USD') {
-  # ''' get currency from info '''
-  # 2016-08-12: Done
-  currency_factor <- factor(report.info$Currency)
-  if (length(currency_factor) == 1) {
-    currency <- levels(currency_factor)
-    return(ifelse(length(currency) == 1, currency, default))
-  }
-  return(default)
-})# 2016-08-12: Done
-
-report.info.leverage <- cmpfun(function(report.info, default = 100) {
-  # ''' get leverage from info '''
-  # 2016-08-12: Done
-  leverage_factor <- factor(report.info$Leverage)
-  if (length(leverage_factor) == 1) {
-    leverage <- levels(leverage_factor)
-    return(ifelse(length(leverage) == 1, as.numeric(leverage), default))
-  }
-  return(default)
-})# 2016-08-12: Done
-
-
-report.item_symbol.mapping <- cmpfun(function(items, support.symbols = rownames(SYMBOLS)) {
-  # ''' item to symbol '''
-  # 2016-08-12: Done
-  if (length(items) == 0) {
-    return(NULL)
-  }
-  if (length(items) > 1) {
-    return(sapply(items, report.item_symbol.mapping, support.symbols, USE.NAMES = F))
-  }
-  if (grepl('BX', items)) return('')
-  symbol <- support.symbols[str_detect(items, support.symbols)]
-  if (length(symbol) != 1) {
-    symbol <- ''
-  }
-  names(symbol) <- items
-  symbol
-})# 2016-08-12: Done
-
-report.symbols.table <- cmpfun(function(symbols, currency = 'USD', leverage = 100, support.symbols.table = SYMBOLS) {
-  # ''' support symbol table '''
-  # 2016-08-12: Done
-  support <- support.symbols.table[symbols, ]
-  support <- within(support, {
-    TickValuePoint <- ConSize * 10 ^ -Digit
-    MarginRequiredPoint <- ConSize / leverage
-  })
-  tick_value <- report.symbols.table.tick.value(symbols, support, currency)
-  margin_required <- report.symbols.table.margin.required(symbols, support, currency, leverage)
-  cbind(support, tick_value, margin_required)
-})# 2016-08-12: Done
-
-report.symbols.table.tick.value <- cmpfun(function(symbols, symbols.table, currency = 'USD') {
-  # ''' get tick value for symbol '''
-  # 2016-08-19: Done
-  symbol.count <- length(symbols)
-  tickvalue.type <- numeric(symbol.count)
-  tickvalue.symbol <- character(symbol.count)
-  symbol_base <- symbol.base.currency(symbols)
-  type.base.check <- grepl(currency, symbol_base)
-  not.type.base.check <- !type.base.check
-  if (any(type.base.check)) {
-    index <- which(type.base.check)
-    tickvalue.type[index] <- symbols.table[symbols[index], 'TickValuePoint']
-    tickvalue.symbol[index] <- NA
-  }
-  if (any(not.type.base.check)) {
-    index <- which(not.type.base.check)
-    tickvalue.symbol[index] <- sapply(symbol_base[index], build.symbol, currency2 = currency, support.symbols = rownames(symbols.table))
-    tickvalue.type[index] <- ifelse(str_detect(symbol_base[index], symbol.base.currency(tickvalue.symbol[index])), -1, -2)
-  }
-  data.frame(
-    stringsAsFactors = F,
-    TickValueType = tickvalue.type,
-    TickValueSymbol = tickvalue.symbol
-  )
-})# 2016-08-19: Done
-
-report.symbols.table.margin.required <- cmpfun(function(symbols, symbols.table, currency = 'USD', leverage = 100) {
-  # ''' get margin required for symbol '''
-  # 2016-08-19: Done
-  symbol.count <- length(symbols)
-  margin.required.type <- numeric(symbol.count)
-  margin.required.symbol <- character(symbol.count)
-  symbol_quote <- symbol.quote.currency(symbols)
-  type.quote.check <- grepl(currency, symbol_quote)
-  not.type.quote.check <- !type.quote.check
-  if (any(type.quote.check)) {
-    index <- which(type.quote.check)
-    margin.required.type[index] <- symbols.table[symbols[index], 'MarginRequiredPoint']
-    margin.required.symbol[index] <- NA
-  }
-  if (any(not.type.quote.check)) {
-    index <- which(not.type.quote.check)
-    margin.required.symbol[index] <- sapply(symbol_quote[index], build.symbol, currency2 = currency, support.symbols = rownames(symbols.table))
-    margin.required.type[index] <- ifelse(str_detect(symbol_quote[index], symbol.quote.currency(margin.required.symbol[index])), -2, -1)
-  }
-  data.frame(
-    stringsAsFactors = F,
-    MarginRequiredType = margin.required.type,
-    MarginRequiredSymbol = margin.required.symbol
-  )
-})# 2016-08-19: Done
 
 report.trades <- cmpfun(function(support.tickets) {
   # ''' create trades (incl. open & closed tickets) '''
@@ -678,28 +573,8 @@ timeseries.from.symbol.trade <- cmpfun(function(symbol.trade, timeseries, price.
 
 #### Symbol Utils ####
 
-symbol.base.currency <- cmpfun(function(symbol) {
-  # ''' symbol's base currency '''
-  # 2016-08-12: Done
-  substr(symbol, 4, 6)
-})# 2016-08-12: Done
 
-symbol.quote.currency <- cmpfun(function(symbol) {
-  # ''' symbol's quote currency '''
-  # 2016-08-12: Done
-  substr(symbol, 1, 3)
-})# 2016-08-12: Done
 
-build.symbol <- cmpfun(function(currency1, currency2, support.symbols = rownames(SYMBOLS)) {
-  # ''' build symbol from 2 currencies '''
-  # 2016-08-12: Done
-  match.currency1 <- support.symbols[str_detect(support.symbols, currency1)]
-  symbol <- match.currency1[str_detect(match.currency1, currency2)]
-  if (length(symbol) == 1) return(symbol)
-  return('')
-})# 2016-08-12: Done
-
-#### TickValue ####
 
 
 calculate.profit.from.tickets.columns <- cmpfun(function(symbol, time, volume, type, open.price, close.price, support.symbols.table, timeframe = 'M1', format.digit = 2, db = c('mysql.old', 'mysql.new', 'influxdb')) {
@@ -725,34 +600,6 @@ calculate.profit.from.tickets <- cmpfun(function(tickets, support.symbols.table,
   })
 })# 2016-08-15: TESTING
 
-calculate.tickvalue <- cmpfun(function(symbols, time, timeframe = 'M1', support.symbols.table, db = c('mysql.old', 'mysql.new', 'influxdb')) {
-  # ''' calculate the tickvalue for symbol(s) '''
-  # 2016-08-15: TESTING
-  if (length(symbols) > 1) {
-    return(mapply(calculate.tickvalue, symbols, time, MoreArgs = list(timeframe = timeframe, support.symbols.table = support.symbols.table, db = db)))
-  }
-  tick.value.type <- support.symbols.table[symbols, 'TickValueType']
-  # print(support.symbols.table)
-  # print(support.symbols.table[symbols, 'TickValueType'])
-  # print(tick.value.type)
-  if (tick.value.type > 0) {
-    return(tick.value.type)
-  }
-  tick.value.symbol <- support.symbols.table[symbols, 'TickValueSymbol']
-  tick.value.symbol.open <- price.data.open(tick.value.symbol, time, timeframe, db)
-  if (is.null(tick.value.symbol.open)) {
-    return(1)
-  }
-  # 
-  tick.value.point <- support.symbols.table[symbols, 'TickValuePoint']
-  if (tick.value.type == -2) {
-    return(tick.value.point * tick.value.symbol.open)
-  }
-  if (tick.value.type == -1) {
-    return(tick.value.point / tick.value.symbol.open)
-  }
-  return(NULL)
-})# 2016-08-15: TESTING
 
 
 

@@ -68,6 +68,32 @@ MetaQuote.Report <- R6Class(
       self$set.infos('File', file.name)
       self$set.infos('Type', private$m.type)
     },
+    ## + currency ##
+    get.currency = function(default='USD') {
+      if (is.null(private$m.currency)) {
+        self$set.currency(default = default)
+      }
+      private$m.currency
+    },
+    set.currency = function(currency, default='USD') {
+      if (missing(currency)) {
+        currency <- self$get.infos()$get.currency(default)
+      }
+      private$m.currency <- currency
+    },
+    ## + leverage ##
+    get.leverage = function(default=100) {
+      if (is.null(private$m.leverage)) {
+        self$set.leverage(default = default)
+      }
+      private$m.leverage
+    },
+    set.leverage = function(leverage, default=100) {
+      if (missing(leverage)) {
+        leverage <- self$get.infos()$get.leverage(default)
+      }
+      private$m.leverage <- leverage
+    },
     ## init tickets ##
     init.ticketss = function(tickets.columns) {
       # ''' init tickets ''' ###
@@ -83,6 +109,8 @@ MetaQuote.Report <- R6Class(
   private = list(
     m.infos = NULL,
     m.tickets = NULL,
+    m.currency = NULL,
+    m.leverage = NULL,
     
     
     init.tickets = function() {

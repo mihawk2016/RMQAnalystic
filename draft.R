@@ -94,10 +94,19 @@
 # B <- build.path('abc', 'DEF', A)
 
 
-A <- Local.Data.R$new('./abc.rdata')
-A$import.csv.files(c('USDCAD_H1_2014.csv', 'USDCAD_H1_2015.csv', 'USDCAD_H1_2016M01-10.csv'))
-# A$local.get.ohlc('USDCAD', '2014-01-01', '2014-01-15', 'H1') -> E
-# A$local.get.open('USDCAD', c('2014-01-01', '2014-01-15', '2014-02-15'), 'H1') -> F
+# A <- Local.Data.R$new('./abc.rdata')
+
+# A$import.csv.files(c('USDCAD_H1_2014.csv', 'USDCAD_H1_2015.csv', 'USDCAD_H1_2016M01-10.csv'))
+# A$get.ohlc('USDCAD', '2014-01-01', '2014-01-02', 'H1') -> E
+# # A$get.open('USDCAD', c('2014-01-02 05:01', '2014-01-15', '2019-02-15'), 'H1') -> E
+# print(E)
+# 
+# # A <- DataBase.MySQL$new()
+# # A$get.open('USDCAD', c('2014-01-02 05:01', '2014-01-15 00:00', '2019-02-15 00:00'), 'H1') -> B
+# A$get.ohlc('USDCAD', '2014-01-01', '2014-01-02', 'H1') -> B
+# print(B)
+
+
 
 # FFF <- R6Class(
 #   public = list(
@@ -124,3 +133,10 @@ A$import.csv.files(c('USDCAD_H1_2014.csv', 'USDCAD_H1_2015.csv', 'USDCAD_H1_2016
 # ZZ <- FFF$new()
 # ZZ$test()
 # ZZ$test2()
+
+
+# A <- DataCenter$new()
+# A$get.ohlc('EURUSD', '2014-01-01', '2014-01-02', 'H1')
+# A$get.local() -> B
+# B$get.local.data() -> C
+# C$H1$USDCAD
