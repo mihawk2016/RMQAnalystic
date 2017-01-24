@@ -47,13 +47,7 @@ Symbol.Table <- R6Class(
     get.support.symbols = function() {
       rownames(self$get.symbol.table())
     },
-    get.mapping = function() {
-      private$m.mapping
-    },
-    set.mapping = function(items) {
-      items <- toupper(unique(items))
-      private$m.mapping <- sapply(items, private$item2symbol, self$get.support.symbol, USE.NAMES = F)
-    },
+
     get.report.table = function() {
       private$m.report.table
     },
@@ -124,19 +118,7 @@ Symbol.Table <- R6Class(
         CON_SIZE = c(rep(100000, 28), 1000, 100)
       )
     },
-    item2symbol = function(item, symbols) {
-      # ''' item to symbol '''
-      # 2016-08-12: Version 1.0
-      if (grepl('BX', item) || item == '') {
-        return('') 
-      }
-      symbol <- symbols[str_detect(item, symbols)]
-      if (length(symbol) != 1) {
-        symbol <- ''
-      }
-      names(symbol) <- item
-      symbol
-    },# FINISH
+    
     build.symbol = function(currency1, currency2, symbols = self$get.support.symbols()) {
       # ''' build symbol from 2 currencies '''
       # 2016-08-12: Version 1.0

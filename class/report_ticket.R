@@ -7,57 +7,149 @@ MetaQuote.ReportTickets <- R6Class(
   # ''' Report Tickets in many phase '''
   # 2017-01-21: Version 0.2: set 3 types of tickets
   classname = 'MetaQuote Report Tickets',
+  #### + PUBLIC ####
   public = list(
 
-
-    get.tickets = function(type) {
-      # ''' get tickets '''
+    
+    #### ++ Getter & Setter ####
+    
+    #### +++ tickets member ####
+    get.tickets.member = function(tickets.type) {
+      # ''' get tickets member '''
       # 2017-01-21: Version 0.1
       switch(
-        type,
+        tickets.type,
         'raw' = private$m.tickets.raw,
         'supported' = private$m.tickets.supported
       )
-      
     },
-    set.tickets = function(type, tickets) {
+    set.tickets.member = function(tickets.type, tickets) {
+      # ''' set tickets member '''
+      # 2017-01-21: Version 0.1
       switch(
-        type,
+        tickets.type,
         'raw' = private$m.tickets.raw <- tickets,
         'supported' = private$m.tickets.supported <- tickets
       )
-      
     },
-    add.tickets = function(tickets) {
-      new.tickets <- rbind(self$get.tickets('raw'), tickets)
-      self$set.tickets('raw', new.tickets)
+    
+    
+    
+    #### ++ ACTION ####
+    
+    #### +++ raw tickets ####
+    add.tickets = function(tickets.type='raw', tickets) {
+      new.tickets <- rbind(self$get.tickets.member(tickets.type), tickets)
+      self$set.tickets.member(tickets.type, new.tickets)
     },
-    add.table = function(table, group, columns, uniform.columns) {
-      self$add.tickets(private$build.group.tickets(table, group, columns, uniform.columns))
+    add.table = function(tickets.type='raw', table, group, columns, uniform.columns) {
+      self$add.tickets(tickets.type, private$build.group.tickets(table, group, columns, uniform.columns))
     },
-    item.unique = function(tickets=private$m.tickets.raw) {
+    
+    #### +++ format tickets ####
+    
+    format.tickets = function(tickets.type='raw', overwrite=TRUE) {
+      # ''' format tickets type '''
+      # 2017-01-24: Version 0.1
+      tickets <- self$get.tickets.member(tickets.type)
+      tickets <- within(tickets, {
+        TICKET <- private$format.number(TICKET)
+        OTIME <- private$format.time(OTIME)
+        TYPE <- private$format.string(TYPE)
+        VOLUME <- private$format.number(VOLUME)
+        ITEM <- private$format.string(ITEM)
+        OPRICE <- private$format.number(OPRICE)
+        SL <- private$format.number(SL)
+        TP <- private$format.number(TP)
+        CTIME <- private$format.time(CTIME)
+        CPRICE <- private$format.number(CPRICE)
+        COMMISSION <- private$format.money(COMMISSION)
+        TAXES <- private$format.money(TAXES)
+        SWAP <- private$format.money(SWAP)
+        PROFIT <- private$format.money(PROFIT)
+      })
+      if (overwrite) {
+        self$set.tickets.member(tickets.type, tickets)
+      }
+      tickets
+    },
+    sort.tickets = function(tickets.type='raw', column='OTIME', decreasing=F, overwrite=TRUE) {
+      # ''' sort tickets type '''
+      # 2016-08-15: Version 1.0
+      tickets <- self$get.tickets.member(tickets.type)
+      tickets <- tickets[order(tickets[[column]], decreasing = decreasing), ]
+      if (overwrite) {
+        self$set.tickets.member(tickets.type, tickets)
+      }
+      tickets
+    },# FINISH
+    
+    
+    get.unique.items = function(tickets=private$m.tickets.raw) {
       # ''' get items of tickets '''
       # 2017-01-21: Version 1.1 use unique() for level - factor method
       unique(tickets$Item)
     } # FINISH
   ),
-
+  
+  #### + PRIVATE ####
   private = list(
+    #### ++ MEMBER ####
     m.tickets.raw = NULL,
     m.tickets.supported = NULL,
     
+    
+    #### ++ build tickets ####
     build.group.tickets = function(table, group, columns, uniform.columns) {
       .build.tickets.group(table, group, columns, uniform.columns)
     },
+    
+    #### ++ format columns ####
+    format.number = function(number) {
+      # ''' format number column '''
+      # 2016-08-16: Version 1.0
+      if (is.numeric(number)) {
+        return(number)
+      }
+      as.numeric(number)
+    },# FINISH
+    format.string = function(string) {
+      # ''' format string column '''
+      # 2016-08-16: Version 1.0
+      toupper(string)
+    },# FINISH
+    format.money = function(money) {
+      # ''' format money column '''
+      # 2016-08-16: Version 1.0
+      if (is.numeric(money)) {
+        return(money)
+      }
+      private$format.number(gsub(' ', '', money))
+    },# FINISH
+    format.time = function(time) {
+      # ''' format time column '''
+      # 2016-08-16: Version 1.0
+      if (all(class(time) == c("POSIXct", "POSIXt"))) {
+        return(time)
+      }
+      if (is.numeric(time)) {
+        return(as.POSIXct(time, origin = '1970-01-01', tz = 'GMT'))
+      }
+      if (is.character(time)) {
+        time <- gsub('[.]', '-', time)
+        only.date <- nchar(time) < 12
+        if (any(only.date, na.rm = T)) {
+          time[only.date] <- paste(time[only.date], '00:00')
+        }
+        return(as.POSIXct(time, tz = 'GMT'))
+      }
+      message('format time may cause error')
+      NA
+    },# FINISH
     calculate.profit = function() {
       #### ToDo ####
       
     }
-    # .sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
-    #   # ''' sort dataframe with columns '''
-    #   # 2016-08-15: Done
-    #   dataframe[order(dataframe[, columns], decreasing = decreasing), ]
-    # })# FINISH
   )
 )
 
@@ -89,7 +181,7 @@ MetaQuote.ReportTickets <- R6Class(
     cbind(table, matrix(data = NA, ncol = length(na.columns), dimnames = list(NULL, c(na.columns)))),
     error = function(e) table
   )
-})# TESTING
+})# FINISH
 
 .report.tickets.exit <- cmpfun(function(comments) {
   # ''' get report tickets column: exit from comment'''

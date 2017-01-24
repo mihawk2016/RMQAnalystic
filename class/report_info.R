@@ -8,8 +8,10 @@ MetaQuote.ReportInfos <- R6Class(
   # 2017-01-21: Version 1.1 data.frame mode
   classname = 'MetaQuote Report Infos',
   public = list(
-    #### PUBLIC ####
+    #### + PUBLIC ####
     initialize = function() {
+      # ''' report infos class '''
+      # 2017-01-24: Version 1.0
       private$m.infos <- data.frame(
         stringsAsFactors = F,
         row.names = NULL,
@@ -24,10 +26,10 @@ MetaQuote.ReportInfos <- R6Class(
         Leverage = NA,
         Time = NA
       )
-    },
-    get.info = function(column) {
+    },# FINISH
+    get.infos.column = function(column) {
       # ''' get member '''
-      # 2017-01-21: Version 0.2 dataframe mode
+      # 2017-01-21: Version 1.0 dataframe mode
       # 2017-01-16: Version 0.1
       if (missing(column)) {
         return(private$m.infos)
@@ -36,11 +38,11 @@ MetaQuote.ReportInfos <- R6Class(
       if (length(column) == 1) {
         info <- unlist(info)
       }
-      return(info)
-    },
-    set.info = function(column, value) {
+      info
+    },# FINISH
+    set.infos.column = function(column, value) {
       # ''' set member '''
-      # 2017-01-21: Version 0.2 dataframe mode
+      # 2017-01-21: Version 1.0 dataframe mode
       # 2017-01-16: Version 0.1
       if (missing(column)) {
         return(private$m.infos <- value)
@@ -56,27 +58,15 @@ MetaQuote.ReportInfos <- R6Class(
         value
       )
       private$m.infos[column] <- formated.value
-    },
-    get.currency = function(default='USD') {
-      currency <- unique(self$get.info('Currency'))
-      if (lenth(currency) > 1 || is.na(currency)) {
-        return(default)
-      }
-      currency
-    },
-    get.leverage = function(default=100) {
-      leverage <- unique(self$get.info('Leverage'))
-      if (lenth(leverage) > 1 || is.na(leverage)) {
-        return(default)
-      }
-      leverage
-    }
+    } # FINISH
   ),
   private = list(
-    #### PRIVATE ####
-    #### + Member ####
+    #### + PRIVATE ####
+    
+    #### ++ Member ####
     m.infos = NULL,
     format.time = function(time) {
+      # ToDo: need not so many check
       formated.time <- sapply(time, .format.report.infos.time, USE.NAMES = T)
       if (is.numeric(formated.time)) {
         formated.time <- as.POSIXct(formated.time, origin = '1970-01-01', tz = 'GMT')

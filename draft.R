@@ -1,21 +1,103 @@
-library(R6)
+# 
+# format.time = function(time) {
+#   # ''' format time column '''
+#   # 2016-08-16: Version 1.0
+#   if (all(class(time) == c("POSIXct", "POSIXt"))) {
+#     return(time)
+#   }
+#   if (is.numeric(time)) {
+#     return(as.POSIXct(time, origin = '1970-01-01', tz = 'GMT'))
+#   }
+#   if (is.character(time)) {
+#     time <- gsub('[.]', '-', time)
+#     only.date <- nchar(time) < 12
+#     time[only.date] <- paste(time[only.date], '00:00')
+#     return(as.POSIXct(time, tz = 'GMT'))
+#   }
+#   message('format time may cause error')
+#   NA
+# }
+# 
+# format.time(c('2015.01.02', '2015.01.02 01:00'))
 
-A <- R6Class(
-  public = list(
-    a = 1,
-    initialize = function(x) {
-      print(private$m.a)
-    }
-  ),
-  private = list(
-    m.a = 'aaa'
-  )
-)
 
-x1 <- A$new()
-x2 <- x1
-x2$a <- 3
-print(x1$a)
+
+# A <- data.frame(stringsAsFactors = F,
+#                 E = c('2015-01-01', '2015-02-02 00:00'))
+# # print(nchar(A))
+# 
+# 
+# # BBB <- function(time.str) {
+# #   paste(time.str, '00:00')
+# # }
+# # 
+# # A[nchar(A) <= 11] <- BBB(A[nchar(A) <= 11])
+# 
+# A[nchar(A$E) < 12, ]
+# A <- with(A[nchar(A$E) < 12, ], {
+#   paste(E, '00:00')
+# })
+# 
+# print(A)
+
+
+
+# as.POSIXlt(1, origin = '1970-01-01', tz = 'GMT') -> A
+# 
+# data.frame(A = as.POSIXct(c('2015-01-01 01:00', '2015-02-02 00:00'), tz = 'GMT'))
+
+# library(R6)
+# 
+# A <- R6Class(
+#   public = list(
+#     a = 1,
+#     initialize = function(x) {
+#       print(private$m.a)
+#     },
+#     TEST = function(a, b) {
+#       self$a <- a - b
+#       print(self$a)
+#     }
+#   ),
+#   private = list(
+#     m.a = 'aaa'
+#   )
+# )
+# 
+# x1 <- A$new()
+# x2 <- x1
+# x2$a <- 3
+# print(x1$a)
+# print(x1[['a']])
+# 
+# with.do = function(class, fun, ...) {
+#   (class[[fun]])(...)
+# }
+# 
+# print(with.do(x1, 'TEST', a = 6, 7))
+# print(x2$a)
+
+# A <- function(a) {
+#   B(a)
+# }
+# 
+# B <- function(a) {
+#   if (missing(a)) {
+#     print('missing')
+#   } else {
+#     print('exists')
+#   }
+# }
+# A()
+
+# a <- 'c'
+# 
+# print(switch(
+#   a,
+#   c(b, d) = 2,
+#   c = 3,
+#   e = 5
+# ))
 
 # A <- R6Class(
 #   public = list(
