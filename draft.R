@@ -1,3 +1,22 @@
+item2symbol <- function(item, symbols) {
+  # ''' item to symbol '''
+  # 2016-08-12: Version 1.0
+  if (grepl('BX', item) || is.na(item)) {
+    return('') 
+  }
+  symbol <- symbols[str_detect(item, symbols)]
+  if (length(symbol) != 1) {
+    symbol <- ''
+  }
+  # names(symbol) <- item
+  symbol
+}
+SYMBOLS <- c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
+             'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
+             'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
+test <- c('EURUSDx', '.AUDUSD', 'XAUUSDfx', 'BXUSDCAD', '', NA)
+EEE <- sapply(test, item2symbol, SYMBOLS, USE.NAMES = T)
+print(EEE)
 # 
 # format.time = function(time) {
 #   # ''' format time column '''
@@ -147,31 +166,8 @@
 # 
 # 
 # 
-# calculate.profits <- cmpfun(function(volumn, tickvalue, pips, format.digits = 2) {
-#   # ''' calculate profit from: volume, tickvalue, pips '''
-#   # 2016-08-15: Version 1.0
-#   round(volume * tickvalue * pips, format.digits)
-# })# FINISH
-# 
-# calculate.pips <- cmpfun(function(type, open.price, close.price, digit) {
-#   # ''' calculate pips '''
-#   # 2017-01-22: Version 1.0
-#   sell.index <- which(grepl('SELL', toupper(type)))
-#   diff.price <- close.price - open.price
-#   if (length(sell.index) > 0) {
-#     diff.price[sell.index] <- -diff.price[sell.index]
-#   }
-#   diff.price * 10 ^ digit
-# })# FINISH
-# 
-# # calculate.pips <- cmpfun(function(symbol, type, open.price, close.price, support.symbols.table) {
-# #   # ''' calculate pips '''
-# #   # 2016-08-15: TESTING
-# #   diffprice <- ifelse(type == 'BUY', close.price - open.price, open.price - close.price)
-# #   diffprice * 10 ^ support.symbols.table[symbol, 'Digit']
-# # })# 2016-08-15: TESTING
-# 
-# recalculate.tickets.profit(TTT)
+
+
 
 
 # build.path = function(timeframe, symbol, local) {

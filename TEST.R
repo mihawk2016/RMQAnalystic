@@ -20,7 +20,7 @@ A$add.files(file)
 
 # A$get.unsupported.file()
 
-A$set.selected.index(1:10)
+A$set.selected.index(8:9)
 
 
 TEST <- A$TESTING()

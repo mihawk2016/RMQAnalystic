@@ -51,25 +51,3 @@ reform.mt4.report.info.time <- cmpfun(function(time) {
   new_time
 })# 2016-08-16: Done
 
-sort.dataframe <- cmpfun(function(dataframe, columns, decreasing = F) {
-  # ''' sort dataframe with columns '''
-  # 2016-08-15: Done
-  dataframe[order(dataframe[, columns], decreasing = decreasing), ]
-})# 2016-08-15: Done
-
-merge.report <- cmpfun(function(report.list) {
-  # ''' merge report into one report '''
-  # 2016-09-01: Coding
-  merge.tickets <- do.call(rbind, c(lapply(report.list, function(x) x$Tickets), make.row.names = F))
-  merge.tickets <- sort.dataframe(merge.tickets, columns = 'OTime')
-  merge.tickets$Ticket <- 1:nrow(merge.tickets)
-  merge.info <- do.call(rbind, c(lapply(report.list, function(x) x$Info), make.row.names = F))
-  merge.type <- do.call(c, lapply(report.list, function(x) x$Type))
-  merge.source <- do.call(c, lapply(report.list, function(x) x$Source))
-  list(
-    Tickets = merge.tickets,
-    Info = merge.info,
-    Type = merge.type,
-    Source = merge.source
-  )
-})# 2016-09-01: Coding

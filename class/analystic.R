@@ -197,7 +197,12 @@ MQAnalystic <- R6Class(
       self$merge.do(function(x) {
         # x$init.raw.tickets(self$get.tickets.columns())
         # print(x$get.tickets.member('raw'))
-        x$get.tickets.member('raw')
+        x$init.others(tickets.columns = self$get.tickets.columns(),
+                      default.currency = self$get.default.currency(),
+                      default.leverage = self$get.default.leverage(),
+                      symbol.table = self$get.symbol.table(),
+                      reset=FALSE)
+        x
       })
     }
   ),

@@ -85,10 +85,10 @@ MetaQuote.ReportTickets <- R6Class(
     },# FINISH
     
     
-    get.unique.items = function(tickets=private$m.tickets.raw) {
+    get.unique.items = function(tickets=self$get.tickets.member('raw')) {
       # ''' get items of tickets '''
       # 2017-01-21: Version 1.1 use unique() for level - factor method
-      unique(tickets$Item)
+      unique(tickets$ITEM)
     } # FINISH
   ),
   
@@ -146,7 +146,7 @@ MetaQuote.ReportTickets <- R6Class(
       message('format time may cause error')
       NA
     },# FINISH
-    calculate.profit = function() {
+    cal.profit = function() {
       #### ToDo ####
       
     }

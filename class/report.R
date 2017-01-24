@@ -138,7 +138,6 @@ MetaQuote.Report <- R6Class(
       self$set.infos.column('Type', private$m.type)
     },# FINISH
     
-
     #### +++ raw tickets ####
     init.raw.tickets = function(tickets.columns) {
       # ''' init raw tickets (visual function) '''
@@ -160,18 +159,20 @@ MetaQuote.Report <- R6Class(
       if (is.null(self$get.tickets.member('raw'))) {
         self$init.raw.tickets(tickets.columns)
       }
-      if (is.null(self$get.currency)) {
+      if (is.null(self$get.currency())) {
         self$init.currency(default.currency)
       }
-      if (is.null(self$get.leverage)) {
+      if (is.null(self$get.leverage())) {
         self$init.leverage(default.leverage)
       }
-      if (is.null(self$get.symbol.mapping)) {
-        self$init.symbol.mapping(symbol.table)
+      symbol.mapping <- self$get.symbol.mapping()
+      if (is.null(symbol.mapping)) {
+        symbol.mapping <- self$init.symbol.mapping(symbol.table)
       }
-      if (is.null(self$get.symbol.setting)) {
-        self$init.symbol.setting(symbol.table)
+      if (is.null(self$get.symbol.setting())) {
+        self$init.symbol.setting(symbol.table, symbol.mapping)
       }
+      self$set.tickets.member('raw', private$cal.tickets.symbol())
     },
     
     #### +++ currency ####
@@ -179,7 +180,7 @@ MetaQuote.Report <- R6Class(
       # ''' init currency '''
       # 2017-01-24: Version 1.0
       currency <- unique(self$get.infos.column('Currency'))
-      if (lenth(currency) > 1 || is.na(currency)) {
+      if (length(currency) > 1 || is.na(currency)) {
         currency <- default.currency
       }
       self$set.currency(currency)
@@ -190,7 +191,7 @@ MetaQuote.Report <- R6Class(
       # ''' init leverage'''
       # 2017-01-24: Version 1.0
       leverage <- unique(self$get.infos.column('Leverage'))
-      if (lenth(leverage) > 1 || is.na(leverage)) {
+      if (length(leverage) > 1 || is.na(leverage)) {
         leverage <- default.leverage
       }
       self$set.leverage(leverage)
@@ -202,15 +203,15 @@ MetaQuote.Report <- R6Class(
       # 2017-01-24: Version 1.0
       all.symbols <- rownames(all.symbol.table)
       items <- self$get.Tickets()$get.unique.items()
-      self$set.symbol.mapping(sapply(items, private$item2symbol, all.symbol.table, USE.NAMES = F))
+      self$set.symbol.mapping(sapply(items, private$item2symbol, all.symbols, USE.NAMES = T))
     },# FINISH
     
     #### +++ symbol setting ####
-    init.symbol.setting = function(all.symbol.table) {
+    init.symbol.setting = function(all.symbol.table, symbol.mapping=self$get.symbol.mapping()) {
       # ''' init symbol setting '''
       # 2017-01-24: Version 1.0
-      symbols <- unique(self$get.symbol.mapping())
-      symbols <- symbols[symbols != '']
+      symbols <- unique(symbol.mapping)
+      symbols <- symbols[!is.na(symbols)]
       self$set.symbol.setting(all.symbol.table[symbols, ])
     },# FINISH
     
@@ -229,8 +230,6 @@ MetaQuote.Report <- R6Class(
       self$get.Tickets()$sort.tickets(tickets.type, column, decreasing, overwrite)
     },
     
-    
-
     
 
     ## init tickets ##
@@ -263,20 +262,118 @@ MetaQuote.Report <- R6Class(
       tickets <- self$get.Tickets()
       tickets$add.table(tickets.type, table, group, columns, uniform.columns)
     },# FINISH
+    
+    #### +++ calculate ####
+    cal.symbol.tickets.profits = function(tickets, db, timeframe, format.digits = 2, overwrite=FALSE) {
+      # ''' calculate profit from one symbol tickets '''
+      # 2016-08-15: Version 1.0
+      symbol <- tickets$SYMBOL[1]
+      digit <- private$m.symbol.setting[symbol, 'DIGITS']
+      tick.value <- private$cal.tick.value(symbol, tickets$CTIME, db, timeframe)
+      pips <- with(tickets, private$cal.pips(TYPE, OPRICE, CPRICE, digit))
+      profits <- private$cal.profits(tickets$VOLUME, tick.value, pips, format.digits)
+      if (overwrite) {
+        return(within(tickets, PROFIT <- profits))
+      }
+      return(profits)
+    },
+    
+    cal.tick.value = function(symbol, times, db, timeframe='M1') {
+      # ''' cal tick value '''
+      # 2017-01-23: Version 0.1
+      currency <- self$get.currency()
+      base.currency <- private$symbol.base.currency(symbol)
+      tick.value.point <- with(private$m.symbol.setting[symbol, ], CON_SIZE * 10 ^ -DIGITS)
+      if (base.currency == currency) {
+        return(tick.value.point)
+      }
+      target.symbol <- private$build.symbol(base.currency, currency)
+      target.open <- db$get.open(target.symbol, times, timeframe)
+      if (base.currency == private$symbol.base.currency(target.symbol)) {
+        return(tick.value.point / target.open)
+      }
+      tick.value.point * target.open
+    },
+    
+    cal.profits = function(volume, tickvalue, pips, format.digits = 2) {
+      # ''' calculate profit from: volume, tickvalue, pips '''
+      # 2016-08-15: Version 1.0
+      round(volume * tickvalue * pips, format.digits)
+    },# FINISH
+    
+    cal.pips = function(type, open.price, close.price, digit) {
+      # ''' calculate pips '''
+      # 2017-01-22: Version 1.0
+      sell.index <- which(grepl('SELL', toupper(type)))
+      diff.price <- close.price - open.price
+      if (length(sell.index) > 0) {
+        diff.price[sell.index] <- -diff.price[sell.index]
+      }
+      diff.price * 10 ^ digit
+    },# FINISH
+    
+    cal.margin.required = function(symbol, times, db, timeframe='M1') {
+      # ''' cal margin required '''
+      # 2017-01-23: Version 0.1
+      currency <- self$get.currency()
+      leverage <- self$get.leverage()
+      quote.currency <- private$symbol.quote.currency(symbol)
+      margin.required.point <- with(private$m.symbol.setting[symbol, ], CON_SIZE / leverage)
+      if (quote.currency == currency) {
+        return(margin.required.point)
+      }
+      target.symbol <- private$build.symbol(quote.currency, currency)
+      target.open <- db$get.open(target.symbol, times, timeframe)
+      if (quote.currency == private$symbol.quote.currency(target.symbol)) {
+        return(margin.required.point * target.open)
+      }
+      margin.required.point / target.open
+    },
+    
+    
+    #### +++ symbol ####
     item2symbol = function(item, symbols) {
       # ''' item to symbol '''
       # 2016-08-12: Version 1.0
-      if (grepl('BX', item) || item == '') {
+      if (is.na(item) || grepl('BX', item)) {
         return('') 
       }
       symbol <- symbols[str_detect(item, symbols)]
       if (length(symbol) != 1) {
         symbol <- ''
       }
-      names(symbol) <- item
       symbol
+    },# FINISH
+    build.symbol = function(currency1, currency2, symbols = self$get.support.symbols()) {
+      # ''' build symbol from 2 currencies '''
+      # 2016-08-12: Version 1.0
+      match.currency1 <- support.symbols[str_detect(support.symbols, currency1)]
+      symbol <- match.currency1[str_detect(match.currency1, currency2)]
+      if (length(symbol) == 1) {
+        return(symbol) 
+      }
+      NULL
+    },# FINISH
+    symbol.base.currency = function(symbol) {
+      # ''' symbol's base currency '''
+      # 2017-01-23: Version 1.0
+      substr(symbol, 4, 6)
+    },# FINISH
+    symbol.quote.currency = function(symbol) {
+      # ''' symbol's quote currency '''
+      # 2017-01-23: Version 1.0
+      substr(symbol, 1, 3)
+    },# FINISH
+    cal.tickets.symbol = function(overwrite=T) {
+      # ''' cal tickets symbol '''
+      # 2017-01-24: Version 
+      tickets <- self$get.tickets.member('raw')
+      symbols <- self$get.symbol.mapping()[tickets$ITEM]
+      if (overwrite) {
+        return(within(tickets, SYMBOL <- symbols))
+      }
+      symbols
     } # FINISH
-
     
   )
 )
@@ -390,22 +487,7 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       self$format.tickets()
       self$sort.tickets()
     } # FINISH
-    # init.tickets = function(tickets.columns) {
-    #   # ''' init tickets ''' ###
-    #   # 2017-01-21: Version 0.2 split in many functions
-    #   # 2017-01-18: Version 0.1
-    #   private$init.raw.tickets(tickets.columns)
-    #   
-    #   
-    #   
-    # 
-    #   
-    #   # part.closed.tickets.index <- with(tickets.closed.temp, which())
-    #   # if (length(part.closed.tickets.index) > 0) {
-    #   #   
-    #   # }
-    # 
-    #   
+
     #   # comment <- closed.tickets[, 10]
     #   # close.at.stop.index <- which(grepl(' at ', comment))
     #   # so.index.in.close.at.stop <- which(difftime(end.time, closed.tickets[close.at.stop.index, 9], units = 'mins') >= 1)
