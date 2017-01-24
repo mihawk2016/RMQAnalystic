@@ -19,7 +19,9 @@ A <- MQAnalystic$new()
 A$add.files(file)
 
 # A$get.unsupported.file()
-A$set.selected.index(7:9)
+
+A$set.selected.index(1:10)
+
 
 TEST <- A$TESTING()
 

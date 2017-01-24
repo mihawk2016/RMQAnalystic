@@ -100,6 +100,7 @@ MetaQuote.Report <- R6Class(
       # 2017-01-23: Version 1.0
       private$m.leverage <- leverage
     },# FINISH
+
     
     #### +++  symbol mapping ####
     get.symbol.mapping = function() {
@@ -124,6 +125,7 @@ MetaQuote.Report <- R6Class(
       # 2017-01-24: Version 1.0
       private$m.symbol.setting <- symbol.setting
     },# FINISH
+
     
     #### ++ init ####
     
@@ -136,6 +138,7 @@ MetaQuote.Report <- R6Class(
       self$set.infos.column('Type', private$m.type)
     },# FINISH
     
+
     #### +++ raw tickets ####
     init.raw.tickets = function(tickets.columns) {
       # ''' init raw tickets (visual function) '''
@@ -227,7 +230,6 @@ MetaQuote.Report <- R6Class(
     },
     
     
-    
 
     
 
@@ -253,6 +255,7 @@ MetaQuote.Report <- R6Class(
     m.symbol.setting = NULL,
     m.symbol.mapping = NULL,
 
+
     add.tickets.table = function(tickets.type, table, group, columns, uniform.columns) {
       # ''' add tickets table into tickets '''
       # 2017-01-24: Version 1.1 load Tickets function
@@ -273,6 +276,7 @@ MetaQuote.Report <- R6Class(
       names(symbol) <- item
       symbol
     } # FINISH
+
     
   )
 )
