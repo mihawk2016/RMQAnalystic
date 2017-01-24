@@ -13,13 +13,14 @@ MQAnalystic <- R6Class(
     initialize = function() {
       # ''' initialize '''
       # 2017-01-23: ToDo
-      private$set.DataCenter()
-      private$set.tickets.columns()
-      private$set.default.currency()
-      private$set.default.leverage()
-      private$set.symbol.table()
-
-    },# FINISH
+      self$set.DataCenter()
+      self$set.tickets.columns()
+      self$set.default.currency()
+      self$set.default.leverage()
+      self$set.symbol.table()
+      ## --
+      
+    },
     #### ++ Getter & Setter ####
     
     #### +++ DataCenter ####
@@ -152,16 +153,19 @@ MQAnalystic <- R6Class(
         return(NULL)
       }
       lapply(selected.reports, fun)
-    },
+    },# FINISH
     merge.do = function(fun) {
       # ''' do fun by merge reports '''
       # 2017-01-23: Version: 0.1
-      merged.reports <- private$get.merged.Reports()
+      merged.reports <- private$get.selected.merge.Reports()
       if (is.null(merged.reports)) {
         return(NULL)
       }
       fun(merged.reports)
-    },
+    },# FINISH
+    
+    
+    
     
     
     set.analyzing.report = function() {
@@ -172,13 +176,13 @@ MQAnalystic <- R6Class(
       private$merge.reports(self$get.reports(index))
       #### ToDo ####
     },
-    get.reports = function(index) {
+    get.Reports = function(index) {
       # ''' get supported reports '''
       # 2017-01-14: Version: 1.0
       if (missing(index)) {
-        private$m.reports
+        private$m.Reports
       } else {
-        private$m.reports[index]
+        private$m.Reports[index]
       }
     },# FINISH
     
@@ -186,12 +190,15 @@ MQAnalystic <- R6Class(
     TESTING = function() {
       # ''' RIGHT NOW JUST FOR TESTING '''
       # 2017-01-21: Version
-      reports = self$get.reports(c(3))
-      lapply(reports, function(report) {
-        r <- report$get.raw.tickets(private$m.tickets.columns)
-        # print(r$)
-      })
       
+      # self$merge.do(function(x) {
+      #   print(x$get.infos.column())
+      # })
+      self$merge.do(function(x) {
+        # x$init.raw.tickets(self$get.tickets.columns())
+        # print(x$get.tickets.member('raw'))
+        x$get.tickets.member('raw')
+      })
     }
   ),
   #### + PRIVATE ####
@@ -271,51 +278,56 @@ MQAnalystic <- R6Class(
     #### +++ files #####
     input.file = function(file.path) {
       # ''' input one file '''
-      # 2017-01-14: Version 0.1
+      # 2017-01-14: Version 1.0
       file.name <- .file.name(file.path)
       file.extension <- .file.extension(file.name)
       report <- .read.file(file.path, file.name, file.extension)
       ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.Reports(report))
-    },
+    },# FINISH
     add.unsupported.file = function(file) {
       # ''' add unsupported files '''
-      # 2017-01-13: Version 0.1
+      # 2017-01-13: Version 1.0
       private$m.unsupported.files <- c(private$m.unsupported.files, file)
-    },# TESTING
+    },# FINISH
     add.Reports = function(file) {
       # ''' add supported files '''
-      # 2017-01-13: Version 0.1
+      # 2017-01-13: Version 1.0
       private$m.Reports <- c(private$m.Reports, file)
-    },# TESTING
+    },# FINISH
 
     #### +++ Reports ####
     get.selected.Reports = function() {
       # ''' get selected index for Reports '''
-      # 2017-01-13: Version 0.1
+      # 2017-01-13: Version 1.0
       index <- self$get.selected.index()
       if (is.null(index) || length(index) == 0) {
         return(NULL)
       }
       self$get.Reports()[index]
-    },
+    },# FINISH
     get.selected.merge.Reports = function() {
       # ''' get merged reports '''
       # 2017-01-21: Version
-      #### ToDo ####
-      # index <- self$get.selected.index()
-      # if (is.null(index) || length(index) == 0) {
-      #   return(NULL)
-      # }
-      
-      self$one.by.one.do()
-      lapply(reports, FUN = function(report) report$get.raw.tickets())
+      reports <- private$get.selected.Reports()
       if (length(reports) == 1) {
         return(reports[[1]])
       }
-      report <- MetaQuote.Report$new()
-      infos <- do.call(rbind, lapply(reports, FUN = function(report) report$get.infos.dataframe()))
-      #### ToDo ####
-    }
+      merged.Report <- MetaQuote.Report$new()
+      infos <- do.call(rbind, lapply(reports, function(report) {
+        report$get.infos.column()
+      }))
+      merged.Report$set.infos.column(value = infos)
+      raw <- do.call(rbind, lapply(reports, function(report) {
+        raw.tickets <- report$get.tickets.member('raw')
+        if (is.null(raw.tickets)) {
+          raw.tickets <- report$init.raw.tickets(self$get.tickets.columns())
+        }
+        raw.tickets
+      }))
+      merged.Report$set.tickets.member('raw', raw)
+      merged.Report$sort.tickets()
+      merged.Report
+    },
     
     
     
@@ -328,26 +340,9 @@ MQAnalystic <- R6Class(
     ## CONFIG ##
     
     ## MEMBER ##
-    m.analyzing.report = NULL,
-    
-    
-    
-    default.symbol.table = function() {
-      # ''' '''
-    }#,
+    m.analyzing.report = NULL
     
 
-    # merge.reports = function(reports) {
-    #   # ''' merge reports '''
-    #   # 2017-01-21: Version 
-    #   lapply(reports, FUN = function(report) report$get.raw.tickets())
-    #   if (length(reports) == 1) {
-    #     return(reports[[1]])
-    #   }
-    #   report <- MetaQuote.Report$new()
-    #   infos <- do.call(rbind, lapply(reports, FUN = function(report) report$get.infos.dataframe()))
-    #   #### ToDo ####
-    # }#,
     # report.init.tickets = function(report) {
     #   # ''' merge reports '''
     #   # 2017-01-21: Version 1.0
