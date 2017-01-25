@@ -1,6 +1,7 @@
 #### ToDo ####
 ## not inherit from datacenter, or Local.Data.R get methode: get.mysql & get.local from it
 ## add functions from Local.Data.R to DataCenter like import.csv.files
+## add default open for symbol tickvalue and marginrequired calculation
 
 require(R6)
 require(compiler)
@@ -22,12 +23,14 @@ DataCenter <- R6Class(
       private$m.local
     },
     get.open = function(symbol, time, timeframe='M1') {
-      local.data <- private$m.local$get.open(symbol, time, timeframe)
+      local.data <- self$get.local()$get.open(symbol, time, timeframe)
       local.open.na.index <- which(is.na(local.data))
-      local.na.time <- time[local.open.na.index]
-      local.data[local.open.na.index] <- private$m.mysql$get.open(symbol, local.na.time, timeframe)
-      if (any(is.na(local.data))) {
-        message('NA returns from DataCenter')
+      if(length(local.open.na.index) > 0) {
+        local.na.time <- time[local.open.na.index]
+        local.data[local.open.na.index] <- self$get.mysql()$get.open(symbol, local.na.time, timeframe)
+        if (any(is.na(local.data))) {
+          message('NA returns from DataCenter')
+        }
       }
       local.data
     },
@@ -105,16 +108,17 @@ DataBase.MySQL <- R6Class(
       query.result <- self$query(sql)[[1]]
       open.serie <- xts(query.result$open, as.POSIXct(strptime(with(query.result, time), '%Y.%m.%d %H:%M', tz = 'GMT')))
       time.string <- paste0('/', gsub('[.]', '-', as.character(time)))
-      sapply(time.string, function(time) {
-        if (nchar(time) == 11) {
-          time <- paste(time, '00:00')
+      sapply(time.string, function(.time) {
+        if (nchar(.time) == 11) {
+          time <- paste(.time, '00:00')
         }
-        res <- open.serie[time]
+        res <- open.serie[.time]
         if (nrow(res) == 0) {
           return(NA)
         }
         res <- tail(res, 1)
-        if (difftime(.format.time(gsub('/', '', time)), index(res), units = 'secs') > 3600) {
+        #### ToDo right now just use 7200 as threshold ####
+        if (difftime(.format.time(gsub('/', '', .time)), index(res), units = 'secs') > 3600 * 2) {
           return(NA)
         }
         res
@@ -140,8 +144,16 @@ DataBase.MySQL <- R6Class(
       if (length(sql) == 0) {
         return(NULL)
       }
-      mysql.connect <- dbConnect(MySQL(), host = host, port = port, username = username, password = password, dbname = dbname)
-      print(mysql.connect)
+      mysql.connect <- tryCatch(
+        dbConnect(MySQL(), host = host, port = port, username = username, password = password, dbname = dbname),
+        error = function(e) {
+          message('MySQL Connect ERROR')
+          NULL
+        }
+      )
+      if (is.null(mysql.connect)) {
+        return(NULL)
+      }
       res <- lapply(sql, function(s) {
         dbGetQuery(mysql.connect, s)
       })
@@ -181,16 +193,17 @@ Local.Data.R <- R6Class(
       }
       open.serie <- local.data$Open
       time.string <- paste0('/', gsub('[.]', '-', as.character(time)))
-      sapply(time.string, function(time) {
-        if (nchar(time) == 11) {
-          time <- paste(time, '00:00')
+      sapply(time.string, function(.time) {
+        if (nchar(.time) == 11) {
+          time <- paste(.time, '00:00')
         }
-        res <- open.serie[time]
+        res <- open.serie[.time]
         if (nrow(res) == 0) {
           return(NA)
         }
         res <- tail(res, 1)
-        if (difftime(.format.time(gsub('/', '', time)), index(res), units = 'secs') > 3600) {
+        #### ToDo right now just use 7200 as threshold ####
+        if (difftime(.format.time(gsub('/', '', .time)), index(res), units = 'secs') > 3600 * 2) {
           return(NA)
         }
         res

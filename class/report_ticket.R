@@ -183,21 +183,7 @@ MetaQuote.ReportTickets <- R6Class(
   )
 })# FINISH
 
-.report.tickets.exit <- cmpfun(function(comments) {
-  # ''' get report tickets column: exit from comment'''
-  # 2017-01-17: Version 1.1 add support for comments type - data.frame
-  # 2016-12-01: Version 1.0
-  if (is.data.frame(comments)) {
-    comments <- unlist(comments)
-  }
-  comments <- toupper(comments)
-  comments <- gsub('/| / ', '', comments)
-  exit <- vector(mode = 'character', length = length(comments))
-  exit[grep('SO', comments)] <- 'SO'
-  exit[grep('SL', comments)] <- 'SL'
-  exit[grep('TP', comments)] <- 'TP'
-  exit
-})# FINISH
+
 
 .format.time <- cmpfun(function(time) {
   # ''' format time '''

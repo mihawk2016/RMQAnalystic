@@ -2,9 +2,11 @@ TIME <- system.time({
   rm(list = ls())
   
   # Rprof('./prof.out', memory.profiling=T)
+  library(quantmod)
   library(XML)
   library(stringr)
-  lapply(file.path('./class', dir('./class')), source)
+  
+  sapply(file.path('./class', dir('./class')), source)
   
   files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
   files
@@ -21,8 +23,7 @@ TIME <- system.time({
   
   # A$get.unsupported.file()
   
-  A$set.selected.index(1:10)
-  
+  A$set.selected.index(5)
   
   TEST <- A$TESTING()
 })

@@ -1,3 +1,8 @@
+##
+## names(x) <- c(1,2,3) ==>> setNames(x, c(1,2,3))
+## during calculate profit, if pips == 0, no need to cal tickvalue
+## 
+
 ## 2017-01-13: Create
 
 require(R6)
@@ -194,16 +199,23 @@ MQAnalystic <- R6Class(
       # self$merge.do(function(x) {
       #   print(x$get.infos.column())
       # })
-      self$merge.do(function(x) {
-        # x$init.raw.tickets(self$get.tickets.columns())
-        # print(x$get.tickets.member('raw'))
-        x$init.others(tickets.columns = self$get.tickets.columns(),
-                      default.currency = self$get.default.currency(),
-                      default.leverage = self$get.default.leverage(),
-                      symbol.table = self$get.symbol.table(),
-                      reset=FALSE)
-        x
-      })
+      print(system.time(
+        self$merge.do(function(x) {
+          # x$init.raw.tickets(self$get.tickets.columns())
+          # print(x$get.tickets.member('raw'))
+          
+          x$init.others(tickets.columns = self$get.tickets.columns(),
+                        default.currency = self$get.default.currency(),
+                        default.leverage = self$get.default.leverage(),
+                        symbol.table = self$get.symbol.table(),
+                        db = self$get.DataCenter(),
+                        timeframe = 'H1',
+                        format.digits = 2, 
+                        reset = FALSE)
+          x
+        })
+      ))
+      
     }
   ),
   #### + PRIVATE ####

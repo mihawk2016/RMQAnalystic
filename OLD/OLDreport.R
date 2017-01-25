@@ -36,14 +36,7 @@ report.tickets.initialize <- cmpfun(function(tickets, item_symbol.mapping, suppo
   tickets
 })# 2016-08-16: TESTING
 
-report.tickets.add.symbol <- cmpfun(function(tickets, item_symbol.mapping) {
-  # ''' add symbol label to tickets '''
-  # 2016-08-12: Done
-  # 2016-08-16: tickets from list to one data.frame
-  within(tickets, {
-    Symbol <- item_symbol.mapping[Item]
-  })
-})# 2016-08-16: Done
+
 
 report.tickets.support.tickets <- cmpfun(function(original.tickets) {
   # ''' get support tickets from original tickets '''
@@ -72,24 +65,6 @@ report.tickets.choose.group <- cmpfun(function(tickets, pattern) {
 #   support.tickets[grep('PENDING|WORKING', support.tickets$Group), ]
 # } # 2016-08-19: Done
 
-report.tickets.recalculate <- cmpfun(function(tickets, support.symbols.table, timeframe = 'M1', format.digit = 2, db = c('mysql.old', 'mysql.new', 'influxdb')) {
-  # ''' init report tickets for recalculate '''
-  # 2016-08-19: TESTING
-  need.recal.index <- with(tickets, which(Mode != ''))
-  if (length(need.recal.index) == 0) return(tickets)
-  new.profit <- original.profit <- tickets$Profit
-  recal.profit <- calculate.profit.from.tickets(tickets[need.recal.index, ], support.symbols.table, timeframe = timeframe, format.digit = format.digit, db = db)
-  new.profit[need.recal.index] <- recal.profit
-  need.recal.swap_profit.index <- with(tickets, which(Mode == 'sp'))
-  if (length(need.recal.swap_profit.index) > 0) {
-    tickets.need.recal.sp <- tickets[need.recal.swap_profit.index, ]
-    need.change.swap.index <- need.recal.swap_profit.index[with(tickets.need.recal.sp, check.overnight.for.swap(CTime, OTime))]
-    if (length(need.change.swap.index) > 0) {
-      tickets$Swap[need.change.swap.index] <- original.profit[need.change.swap.index] - new.profit[need.change.swap.index]
-    }
-  }
-  within(tickets, Profit[need.recal.index] <- recal.profit)
-})# 2016-08-19: TESTING
 
 
 report.trades <- cmpfun(function(support.tickets) {

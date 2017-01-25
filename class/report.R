@@ -1,3 +1,5 @@
+## dont need symbol setting, usd all symbol table
+## MT5/MT4 EA no need split with SYMBOL to cal profit
 require(R6)
 require(compiler)
 
@@ -140,12 +142,12 @@ MetaQuote.Report <- R6Class(
     
     #### +++ raw tickets ####
     init.raw.tickets = function(tickets.columns) {
-      # ''' init raw tickets (visual function) '''
+      # ''' init raw tickets (virtual) '''
       # 2017-01-24: Version 1.0
     },# FINISH
     
     #### +++ others ####
-    init.others = function(tickets.columns, default.currency, default.leverage, symbol.table, reset=FALSE) {
+    init.others = function(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset=FALSE) {
       # ''' init raw tickets and others '''
       # 2017-01-24: Version
       if (reset) {
@@ -153,8 +155,6 @@ MetaQuote.Report <- R6Class(
         self$set.leverage(NULL)
         self$set.symbol.mapping(NULL)
         self$set.symbol.setting(NULL)
-        ## --
-        
       }
       if (is.null(self$get.tickets.member('raw'))) {
         self$init.raw.tickets(tickets.columns)
@@ -172,8 +172,14 @@ MetaQuote.Report <- R6Class(
       if (is.null(self$get.symbol.setting())) {
         self$init.symbol.setting(symbol.table, symbol.mapping)
       }
-      self$set.tickets.member('raw', private$cal.tickets.symbol())
+      self$init.else(db, timeframe, format.digits)
     },
+    
+    init.else = function(db, timeframe, format.digits) {
+      # ''' init else (virtual) '''
+      # 2017-01-25: Version 1.0
+      
+    },# FINISH
     
     #### +++ currency ####
     init.currency = function(default.currency) {
@@ -230,8 +236,18 @@ MetaQuote.Report <- R6Class(
       self$get.Tickets()$sort.tickets(tickets.type, column, decreasing, overwrite)
     },
     
+    #### ++ TICKETS BEHAVIOR ####
+    tickets.add.symbol = function() {
+      # ''' tickets add symbol '''
+      # 2017-01-25: Version 1.0
+      self$set.tickets.member('raw', private$cal.tickets.symbol())
+    },# FINISH
+    tickets.add.exit = function() {
+      # ''' tickets add exit '''
+      # 2017-01-25: Version 1.0
+      self$set.tickets.member('raw', private$cal.tickets.exit())
+    },# FINISH
     
-
     ## init tickets ##
     init.ticketss = function(tickets.columns) {
       # ''' init tickets ''' ###
@@ -264,8 +280,19 @@ MetaQuote.Report <- R6Class(
     },# FINISH
     
     #### +++ calculate ####
+    recal.tickets.profits = function(tickets, db, timeframe, format.digits = 2) {
+      # ''' calculate profit for tickets '''
+      # 2016-08-15: Version 1.0
+      closed.tickets.index <- which(tickets$GROUP == 'Closed')
+      closed.tickets <- tickets[closed.tickets.index, ]
+      new.closed.tickets <- do.call(rbind, lapply(split(closed.tickets, closed.tickets$SYMBOL), function(symbol.tickets) {
+        private$cal.symbol.tickets.profits(symbol.tickets, db, timeframe, format.digits, overwrite = TRUE)
+      }), args = list(make.row.names = TRUE))
+      new.tickets <- rbind(new.closed.tickets, tickets[-closed.tickets.index, ])
+      new.tickets[order(new.tickets$OTIME), ]
+    },
     cal.symbol.tickets.profits = function(tickets, db, timeframe, format.digits = 2, overwrite=FALSE) {
-      # ''' calculate profit from one symbol tickets '''
+      # ''' calculate profit for one symbol tickets '''
       # 2016-08-15: Version 1.0
       symbol <- tickets$SYMBOL[1]
       digit <- private$m.symbol.setting[symbol, 'DIGITS']
@@ -284,6 +311,8 @@ MetaQuote.Report <- R6Class(
       currency <- self$get.currency()
       base.currency <- private$symbol.base.currency(symbol)
       tick.value.point <- with(private$m.symbol.setting[symbol, ], CON_SIZE * 10 ^ -DIGITS)
+      # print(base.currency)
+      # print(currency)
       if (base.currency == currency) {
         return(tick.value.point)
       }
@@ -344,9 +373,12 @@ MetaQuote.Report <- R6Class(
       }
       symbol
     },# FINISH
-    build.symbol = function(currency1, currency2, symbols = self$get.support.symbols()) {
+    build.symbol = function(currency1, currency2, support.symbols = self$get.support.symbols()) {
       # ''' build symbol from 2 currencies '''
-      # 2016-08-12: Version 1.0
+      # 2016-08-12: Version 1.0 FIX support.symbols: self$get.support.symbols() should usd all symbol table
+      support.symbols = c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
+        'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
+        'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
       match.currency1 <- support.symbols[str_detect(support.symbols, currency1)]
       symbol <- match.currency1[str_detect(match.currency1, currency2)]
       if (length(symbol) == 1) {
@@ -364,17 +396,24 @@ MetaQuote.Report <- R6Class(
       # 2017-01-23: Version 1.0
       substr(symbol, 1, 3)
     },# FINISH
-    cal.tickets.symbol = function(overwrite=T) {
+    cal.tickets.symbol = function(tickets=self$get.tickets.member('raw'), overwrite=T) {
       # ''' cal tickets symbol '''
-      # 2017-01-24: Version 
-      tickets <- self$get.tickets.member('raw')
+      # 2017-01-24: Version 1.0
       symbols <- self$get.symbol.mapping()[tickets$ITEM]
       if (overwrite) {
         return(within(tickets, SYMBOL <- symbols))
       }
       symbols
+    },# FINISH
+    cal.tickets.exit = function(tickets=self$get.tickets.member('raw'), overwrite=T) {
+      # ''' cal tickets symbol '''
+      # 2017-01-24: Version 1.0
+      exit <- .report.tickets.exit(tickets$COMMENT)
+      if (overwrite) {
+        return(within(tickets, EXIT <- exit))
+      }
+      exit
     } # FINISH
-    
   )
 )
 
@@ -392,7 +431,33 @@ MetaQuote.HTML.Report <- R6Class(
     },# FINISH
     init.Infos = function(file.path, file.name) {
       super$init.Infos(file.path, file.name)
-    }
+    },
+    
+    #### +++ others ####
+    init.others = function(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset=FALSE) {
+      # ''' init raw tickets and others '''
+      # 2017-01-24: Version
+      super$init.others(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset)
+    },
+    
+    init.else = function(db, timeframe, format.digits) {
+      # ''' init else '''
+      super$init.else(db, timeframe, format.digits)
+      self$tickets.add.symbol()
+      self$tickets.add.exit()
+    },# FINISH
+    
+    #### Getter & Setter ####
+    get.html.parse = function() {
+      # ''' get html parse '''
+      # 2017-01-25: Version 1.0
+      private$m.html.parse
+    },# FINISH
+    set.html.parse = function(html.parse) {
+      # ''' set html parse '''
+      # 2017-01-25: Version 1.0
+      private$m.html.parse <- html.parse
+    } # FINISH
   ),
   private = list(
     m.html.parse = NULL,
@@ -431,6 +496,21 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       private$init.Infos(html.parse)
     },# FINISH
     
+    #### +++ others ####
+    init.others = function(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset=FALSE) {
+      # ''' init raw tickets and others '''
+      # 2017-01-24: Version
+      super$init.others(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset)
+    },
+    
+    init.else = function(db, timeframe, format.digits) {
+      # ''' init else '''
+      # 2017-01-25: Version 1.0
+      super$init.else(db, timeframe, format.digits)
+      new.tickets <- private$close.at.stop.is.so()
+      new.tickets <- private$recal.profit.and.swap(new.tickets, db, timeframe, format.digits)
+      self$set.tickets.member('raw', new.tickets)
+    },# FINISH
     
     init.raw.tickets = function(tickets.columns) {
       # ''' get all tickets from html table '''
@@ -487,17 +567,6 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       self$format.tickets()
       self$sort.tickets()
     } # FINISH
-
-    #   # comment <- closed.tickets[, 10]
-    #   # close.at.stop.index <- which(grepl(' at ', comment))
-    #   # so.index.in.close.at.stop <- which(difftime(end.time, closed.tickets[close.at.stop.index, 9], units = 'mins') >= 1)
-    #   # if (length(so.index.in.close.at.stop) > 0) {
-    #   #   so.index <- close.at.stop.index[so.index.in.close.at.stop]
-    #   #   comment[so.index] <- 'so'
-    #   #   closed.tickets[, 10] <- comment
-    #   # }
-    # }
-    
   ),
   private = list(
     m.type = REPORT_TYPE['MT4.EA'],
@@ -512,6 +581,27 @@ MetaQuote.HTML.MT4EA.Report <- R6Class(
       self$set.infos.column('Name', head.lines[[1]])
       self$set.infos.column('Broker', head.lines[[2]])
     },# FINISH
+    
+    #### ++ raw tickets extra ####
+    recal.profit.and.swap = function(tickets, db, timeframe, format.digits = 2) {
+      ### '' recal profit and swap '''
+      ### 2015-01-25: Version 0.9 profit of new and old tickets may not in same order
+      profit <- private$recal.tickets.profits(tickets, db, timeframe, format.digits)$PROFIT
+      ## need 'profit' in same order as 'tickets'
+      within(tickets, {
+        SWAP <- PROFIT - profit
+        PROFIT <- profit
+      })
+    },# ToDo
+    
+    close.at.stop.is.so = function() {
+      tickets <- self$get.tickets.member('raw')
+      close.at.stop.index <- which(grepl('close at stop', tickets$COMMENT))
+      time <- self$get.infos.column('Time')
+      difftimes <- time - as.numeric(tickets$CTIME[close.at.stop.index])
+      tickets$EXIT[close.at.stop.index] <- ifelse(difftimes > 60, 'SO', '')
+      tickets
+    },
     
     #### ++ UTILS ####
     get.tickets.item = function(html.parse=private$m.html.parse) {
@@ -558,7 +648,7 @@ MetaQuote.HTML.MT4Trade.Report <- R6Class(
       colnames(tickets.table) <- tickets.columns$Uniform[1:14]
       tickets.table[tickets.table == ''] <- NA
       tickets.table$COMMENT <- private$get.tickets.comments()
-      suppressWarnings(tickets <- tickets.table[which(!is.na(as.numeric(tickets.table[, 1]))), ])
+      suppressWarnings(tickets <- tickets.table[which(!is.na(as.numeric(tickets.table[, 1]))), ]) #### 留后处理 ####
       if (nrow(tickets) == 0) {
         return(NULL)
       }
@@ -617,6 +707,16 @@ MetaQuote.HTML.MT5EA.Report <- R6Class(
       super$init.Infos(file.path, file.name)
       private$init.Infos(private$get.html.table())
     },# FINISH
+    
+    init.else = function(db, timeframe, format.digits) {
+      # ''' init else '''
+      # 2017-01-25: Version 1.0
+      super$init.else(db, timeframe, format.digits)
+      new.tickets <- private$end.of.test.is.so()
+      new.tickets <- private$recal.tickets.profits(tickets=new.tickets, db, timeframe, format.digits)
+      self$set.tickets.member('raw', new.tickets)
+    },# FINISH
+    
     init.raw.tickets = function(tickets.columns) {
       # ''' get all tickets from html table '''
       # 2017-01-24: Version 1.1 format & sort
@@ -648,7 +748,16 @@ MetaQuote.HTML.MT5EA.Report <- R6Class(
       self$set.infos.column('Leverage', values[which(grepl('Leverage', labels))[1]])
       self$set.infos.column('Time', substr(time.string, nchar.time.string - 10, nchar.time.string - 1))
     },# FINISH
-
+    
+    end.of.test.is.so = function() {
+      tickets <- self$get.tickets.member('raw')
+      close.at.stop.index <- which(grepl('end of test', tickets$COMMENT))
+      time <- self$get.infos.column('Time')
+      difftimes <- time - as.numeric(tickets$CTIME[close.at.stop.index])
+      tickets$EXIT[close.at.stop.index] <- ifelse(difftimes > 60, 'SO', '')
+      tickets
+    },
+    
     get.html.mt5.money_closed_open = function(deals, tickets.columns, position=NULL) {
       # ''' get money, closed open tickets from mt5 html '''
       # 2017-01-21: Version
@@ -807,6 +916,15 @@ MetaQuote.HTML.MT5Trade.Report <- R6Class(
       super$init.Infos(file.path, file.name)
       private$init.Infos(private$get.html.table())
     },# FINISH
+    
+    init.else = function(db, timeframe, format.digits) {
+      # ''' init else '''
+      # 2017-01-25: Version 1.0
+      super$init.else(db, timeframe, format.digits)
+      new.tickets <- private$recal.tickets.profits(tickets=self$get.tickets.member('raw'), db, timeframe, format.digits)
+      self$set.tickets.member('raw', new.tickets)
+    },# FINISH
+    
     init.raw.tickets = function(tickets.columns) {
       # ''' get all tickets from html table '''
       # 2017-01-24: Version 1.1 format & sort
@@ -1097,7 +1215,7 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
       # 2017-01-21: Version 1.0
       super$initialize()
       super$init.Infos(file.path, file.name)
-      private$set.infos()
+      private$init.infos()
     },# FINISH
     init.raw.tickets = function(tickets.columns) {
       # ''' get all tickets from html table '''
@@ -1131,7 +1249,7 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
   private = list(
     m.type = REPORT_TYPE['MT4M.RAW'],
     
-    set.infos = function() {
+    init.infos = function() {
       # ''' set infos '''
       # 2017-01-16: Version 0.2
     } # FINISH
@@ -1140,3 +1258,15 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
 )
 
 
+.report.tickets.exit <- cmpfun(function(comments) {
+  # ''' get report tickets column: exit from comment'''
+  # 2017-01-17: Version 1.1 add support for comments type - data.frame
+  # 2016-12-01: Version 1.0
+  comments <- toupper(comments)
+  comments <- gsub('/| / ', '', comments)
+  exit <- vector(mode = 'character', length = length(comments))
+  exit[grep('SO', comments)] <- 'SO'
+  exit[grep('SL', comments)] <- 'SL'
+  exit[grep('TP', comments)] <- 'TP'
+  exit
+})# FINISH
