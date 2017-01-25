@@ -1,22 +1,140 @@
-item2symbol <- function(item, symbols) {
-  # ''' item to symbol '''
-  # 2016-08-12: Version 1.0
-  if (grepl('BX', item) || is.na(item)) {
-    return('') 
-  }
-  symbol <- symbols[str_detect(item, symbols)]
-  if (length(symbol) != 1) {
-    symbol <- ''
-  }
-  # names(symbol) <- item
-  symbol
+library(XML)
+library(htmlTable)
+library(xml2)
+library(htmltab)
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
+files
+
+test.number <- 1
+file <- files[test.number]
+
+
+print(system.time({
+  a <- htmlParse(file)
+  print('a')
+  # library(XML)
+  # a <- XML::htmlParse(file)
 }
-SYMBOLS <- c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
-             'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
-             'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
-test <- c('EURUSDx', '.AUDUSD', 'XAUUSDfx', 'BXUSDCAD', '', NA)
-EEE <- sapply(test, item2symbol, SYMBOLS, USE.NAMES = T)
-print(EEE)
+))
+
+# print(system.time({
+#   a2 <- htmlTreeParse(file)
+#   print('a2')
+#   # library(XML)
+#   # a <- XML::htmlParse(file)
+# }
+# ))
+
+# print(system.time({
+#   for (i in 1:10) readHTMLTable(files[i], colClasses = 'character')
+#   # b <- readHTMLTable(file, colClasses = 'character')#, encoding = 'UTF-8')
+#   # print('b')
+# }
+# ))
+
+# print(system.time({
+#   c <- readHTMLTable(file)
+#   print('c')
+# }
+# ))
+
+print(system.time({
+  # a <- read_html(file)
+  t <- tableNodes <- getNodeSet(a, "//table/tr/td", fun = xmlValue, trim=F)[-1]
+  tableNodes <- tableNodes[1:(length(tableNodes)-10)]
+  rr <- as.data.frame(matrix(unlist(tableNodes), ncol = 17, byrow = T))
+  # p <- as.data.frame(tableNodes)
+  print('c')
+}
+))
+
+# print(system.time({
+#   tableNodes = getNodeSet(a, "//table")
+#   d <- readHTMLTable(tableNodes[[1]])
+#   print('d')
+# }
+# ))
+# 
+# print(system.time({
+#   e <- readHTMLTable(a, which = 1)
+#   print('e')
+# }
+# ))
+
+# print(system.time({
+#   f <- read_html(file)
+#   print('f')
+# }
+# ))
+
+# print(system.time({
+#   g <- htmltab(a, which = 1, rm_nodata_cols = F)
+#   print('g')
+# }))
+
+# print(
+#   system.time({
+#     t1 <- list()
+#     for (i in 1:1000) t1[i] <- i
+#   })
+# )
+# 
+# print(
+#   system.time({
+#     t2 <- list()
+#     length(t2) <- 100000
+#     for (i in 1:1000) t2[i] <- i
+#   })
+# )
+
+# print(
+#   system.time(
+#     t <- 1:100000
+#   )
+# )
+
+
+# print(
+#   system.time({
+#     t <- c(NA)
+#     for (i in 1:100000) t[i] <- i
+#   })
+# )
+# 
+# print(
+#   system.time({
+#     t <- c(NA)
+#     length(t) <- 100000
+#     for (i in 1:100000) t[i] <- i
+#   })
+# )
+# 
+# print(
+#   system.time(
+#     t <- 1:100000
+#   )
+# )
+
+
+# item2symbol <- function(item, symbols) {
+#   # ''' item to symbol '''
+#   # 2016-08-12: Version 1.0
+#   if (grepl('BX', item) || is.na(item)) {
+#     return('') 
+#   }
+#   symbol <- symbols[str_detect(item, symbols)]
+#   if (length(symbol) != 1) {
+#     symbol <- ''
+#   }
+#   # names(symbol) <- item
+#   symbol
+# }
+# SYMBOLS <- c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
+#              'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
+#              'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
+# test <- c('EURUSDx', '.AUDUSD', 'XAUUSDfx', 'BXUSDCAD', '', NA)
+# EEE <- sapply(test, item2symbol, SYMBOLS, USE.NAMES = T)
+# print(EEE)
 # 
 # format.time = function(time) {
 #   # ''' format time column '''
