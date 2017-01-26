@@ -1,6 +1,9 @@
 TIME <- system.time({
   rm(list = ls())
   
+  
+
+  
   # Rprof('./prof.out', memory.profiling=T)
   library(quantmod)
   library(XML)
@@ -17,13 +20,21 @@ TIME <- system.time({
   
   # .read.file(file, .file.extension(file))
   
+  # ## parallel
+  # library(parallel)
+  # cl <- makeCluster(detectCores())
+  # clusterSetRNGStream(cl)
+  # clusterEvalQ(cl, {
+  #   library(XML)
+  # })
+  # ##
   A <- MQAnalystic$new()
   
   A$add.files(file)
   
   # A$get.unsupported.file()
   
-  A$set.selected.index(5)
+  A$set.selected.index(1:10)
   
   TEST <- A$TESTING()
 })

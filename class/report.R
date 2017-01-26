@@ -287,7 +287,7 @@ MetaQuote.Report <- R6Class(
       closed.tickets <- tickets[closed.tickets.index, ]
       new.closed.tickets <- do.call(rbind, lapply(split(closed.tickets, closed.tickets$SYMBOL), function(symbol.tickets) {
         private$cal.symbol.tickets.profits(symbol.tickets, db, timeframe, format.digits, overwrite = TRUE)
-      }), args = list(make.row.names = TRUE))
+      }))
       new.tickets <- rbind(new.closed.tickets, tickets[-closed.tickets.index, ])
       new.tickets[order(new.tickets$OTIME), ]
     },

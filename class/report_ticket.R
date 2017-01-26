@@ -102,6 +102,29 @@ MetaQuote.ReportTickets <- R6Class(
     #### ++ build tickets ####
     build.group.tickets = function(table, group, columns, uniform.columns) {
       .build.tickets.group(table, group, columns, uniform.columns)
+      # if (is.null(table) || nrow(table) == 0) {
+      #   return(NULL) 
+      # }
+      # table.columns <- colnames(table)
+      # table$GROUP <- group
+      # ## default 0 check
+      # zero.columns <- columns[which(!(columns %in% table.columns))]
+      # table <- tryCatch(
+      #   cbind(table, matrix(data = 0, ncol = length(zero.columns), dimnames = list(NULL, c(zero.columns)))),
+      #   error = function(e) table
+      # )
+      # ## comment
+      # if (is.null(table$COMMENT)) {
+      #   table$COMMENT <- ''
+      # }
+      # group.columns <- c(columns, c('GROUP', 'COMMENT'))
+      # table <- table[group.columns]
+      # na.columns <- uniform.columns[which(!(uniform.columns %in% group.columns))]
+      # ## NAs check
+      # tryCatch(
+      #   cbind(table, matrix(data = NA, ncol = length(na.columns), dimnames = list(NULL, c(na.columns)))),
+      #   error = function(e) table
+      # )
     },
     
     #### ++ format columns ####

@@ -199,8 +199,8 @@ MQAnalystic <- R6Class(
       # self$merge.do(function(x) {
       #   print(x$get.infos.column())
       # })
-      print(system.time(
-        self$merge.do(function(x) {
+      t.time <- system.time(
+        res <- self$merge.do(function(x) {
           # x$init.raw.tickets(self$get.tickets.columns())
           # print(x$get.tickets.member('raw'))
           
@@ -214,8 +214,9 @@ MQAnalystic <- R6Class(
                         reset = FALSE)
           x
         })
-      ))
-      
+      )
+      print(paste('The TESTING Time in Fun is:', paste(format(t.time[1:3], digits = 2), collapse = ' ')))
+      res
     }
   ),
   #### + PRIVATE ####
@@ -334,6 +335,7 @@ MQAnalystic <- R6Class(
         report$get.infos.column()
       }))
       merged.Report$set.infos.column(value = infos)
+      # raw <- do.call(rbind, clusterApply(cl, reports, function(report) {
       raw <- do.call(rbind, lapply(reports, function(report) {
         raw.tickets <- report$get.tickets.member('raw')
         if (is.null(raw.tickets)) {
