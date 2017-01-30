@@ -15,11 +15,11 @@ MetaQuote.ReportInfos <- R6Class(
       private$m.infos <- data.frame(
         stringsAsFactors = F,
         row.names = NULL,
-        FilePath = NA,
+        # FilePath = NA,
         File = NA,
         Type = NA,
         Account = NA,
-        Group = NA,
+        # Group = NA,
         Name = NA,
         Broker = NA,
         Currency = NA,

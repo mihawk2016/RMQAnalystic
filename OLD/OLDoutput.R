@@ -6,7 +6,9 @@ require(compiler)
 report.output <- cmpfun(function(report, timeframe = 'H1', dir = './Output', comment = F) {
   # ''' report output '''
   # 2016-08-18: Coding
-  windowsFonts(CON = windowsFont("Consolas"))
+  
+  # windowsFonts(CON = windowsFont("Consolas"))
+  
   statistics.portfolio <- report$Statistics$Portfolio
   trade.period <- report$Period$Period
   trade.days <- report$Period$TradeDays
@@ -43,43 +45,8 @@ report.output <- cmpfun(function(report, timeframe = 'H1', dir = './Output', com
   report.output.file(report$Info, timeframe, dir, comment, environment())
 })# 2016-08-18: Coding
 
-report.output.file <- cmpfun(function(info, timeframe, dir, comment, envir) {
-  # ''' report output file '''
-  # 2016-08-18: TESTING
-  markdown <- ifelse(comment, './Markdowns/Output.Comment.Rmd', './Markdowns/Output.Rmd')
-  local.time <- Sys.getlocale('LC_TIME')
-  Sys.setlocale('LC_TIME', 'us')
-  render(markdown, html_document(), output_file = report.output.file.name(info, timeframe), quiet = T, output_dir = dir, envir = envir)
-  Sys.setlocale('LC_TIME', local.time)
-})# 2016-08-18: TESTING
 
-report.output.file.name <- cmpfun(function(info, timeframe = 'H1') {
-  # ''' build file name for output file '''
-  # 2016-08-11: Done
-  if (nrow(info) == 1) {
-    account = info$Account
-    if (is.na(account)) {
-      account <- ''
-    }
-    name = info$Name
-    if (is.na(name)) {
-      name <- ''
-    }
-  } else {
-    account = 'Multi'
-    name = 'Combi'
-  }
-  sprintf('R-%s_%s_%s.html', account, name, timeframe)
-})# 2016-08-11: Done
 
-report.output.info <- cmpfun(function(info) {
-  # ''' head for output '''
-  # 2016-08-11: Done
-  info$Time <- as.character(info$Time)
-  htmlTable(info,
-            css.table = "width: 100%; margin-top: 1em; margin-bottom: 1em;",
-            rnames = F)
-})# 2016-08-11: Done
 
 report.output.portfolio.result <- cmpfun(function(portfolio) {
   # ''' portfolio result for output '''

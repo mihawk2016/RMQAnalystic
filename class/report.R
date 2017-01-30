@@ -135,7 +135,7 @@ MetaQuote.Report <- R6Class(
     init.Infos = function(file.path, file.name) {
       # ''' init Infos '''
       # 2017-01-24: Version 1.0
-      self$set.infos.column('FilePath', file.path)
+      # self$set.infos.column('FilePath', file.path)
       self$set.infos.column('File', file.name)
       self$set.infos.column('Type', private$m.type)
     },# FINISH
@@ -463,7 +463,7 @@ MetaQuote.HTML.Report <- R6Class(
     m.html.parse = NULL,
     m.html.table = NULL,
     
-    get.html.table = function(file.path=self$get.infos.column('FilePath')) {
+    get.html.table = function(file.path=self$get.html.parse()) {
       # ''' get html table for tickets '''
       # 2017-01-21: Version 1.2 also for null - check
       # 2017-01-18: Version 1.1 tryCatch for 2 type of encodings
@@ -700,11 +700,12 @@ MetaQuote.HTML.MT5EA.Report <- R6Class(
   classname = 'MetaQuote HTML MT5 EA Report',
   inherit = MetaQuote.HTML.Report,
   public = list(
-    initialize = function(file.path, file.name) {
+    initialize = function(file.path, file.name, html.parse) {
       # ''' init '''
       # 2017-01-21: Version 1.0
       super$initialize()
       super$init.Infos(file.path, file.name)
+      private$m.html.parse <- html.parse
       private$init.Infos(private$get.html.table())
     },# FINISH
     
@@ -909,11 +910,12 @@ MetaQuote.HTML.MT5Trade.Report <- R6Class(
   classname = 'MetaQuote HTML MT5 Trade Report',
   inherit = MetaQuote.HTML.Report,
   public = list(
-    initialize = function(file.path, file.name) {
+    initialize = function(file.path, file.name, html.parse) {
       # ''' init '''
       # 2017-01-21: Version 1.0
       super$initialize()
       super$init.Infos(file.path, file.name)
+      private$m.html.parse <- html.parse
       private$init.Infos(private$get.html.table())
     },# FINISH
     

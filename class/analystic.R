@@ -126,13 +126,19 @@ MQAnalystic <- R6Class(
     add.files = function(file.path) {
       # ''' add files '''
       # 2017-01-13: Version 1.0
-      lapply(file.path, FUN = private$input.file)
+      if (is.data.frame(file.path)) {
+        for (i in 1:nrow(file.path)) {
+          private$input.file(file.path[i, ])
+        }
+      } else {
+        lapply(file.path, FUN = private$input.file)
+      }
     },# FINISH
     clear.files = function() {
       # ''' clear all files '''
       # 2017-01-13: Version 1.0
       private$m.unsupported.files <- NULL
-      private$m.reports <- NULL
+      private$m.Reports <- NULL
       private$m.selected.index <- NULL
     },# FINISH
     get.unsupported.files = function(index) {
@@ -144,6 +150,12 @@ MQAnalystic <- R6Class(
         private$m.unsupported.files[[index]]
       }
     },# FINISH
+    get.all.Reports.infos = function() {
+      all.reports <- self$get.Reports()
+      infos <- lapply(all.reports, function(x) x$get.infos.column())
+      TTT <<- infos
+      do.call(rbind, infos)
+    },
     
     #### +++ analystics ####
     
@@ -190,6 +202,14 @@ MQAnalystic <- R6Class(
         private$m.Reports[index]
       }
     },# FINISH
+    
+    #### Output ####
+    output.tickets = function() {
+      # ''' output tickets as .csv '''
+      # 2017-01-30: Version 
+      
+    },
+    
     
     #### TESTING ####
     TESTING = function() {
@@ -296,8 +316,14 @@ MQAnalystic <- R6Class(
     #### +++ files #####
     input.file = function(file.path) {
       # ''' input one file '''
+      # 2017-01-30: Version 1.1 for fileInput
       # 2017-01-14: Version 1.0
-      file.name <- .file.name(file.path)
+      if (is.data.frame(file.path)) {
+        file.name <- file.path$name
+        file.path <- file.path$datapath
+      } else {
+        file.name <- .file.name(file.path)
+      }
       file.extension <- .file.extension(file.name)
       report <- .read.file(file.path, file.name, file.extension)
       ifelse(is.null(report), private$add.unsupported.file(file.name), private$add.Reports(report))
@@ -374,8 +400,12 @@ MQAnalystic <- R6Class(
 
 .file.name <- cmpfun(function(file.path) {
   # ''' get file name '''
+  # 2017-01-30: Version 1.1 for fileInput
   # 2016-08-11: Version 1.0
-  tail(strsplit(file.path, '/', fixed = T)[[1]], 1)
+  if (is.data.frame(file.path)) {
+    return(file.path$name)
+  }
+  basename(file.path)
 })# FINISH
 
 .file.extension <- cmpfun(function(file.path) {
@@ -399,10 +429,10 @@ MQAnalystic <- R6Class(
       return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
     }
     if (grepl('Strategy Tester Report', html.title)) {
-      return(MetaQuote.HTML.MT5EA.Report$new(file.path, file.name))
+      return(MetaQuote.HTML.MT5EA.Report$new(file.path, file.name, html.parse))
     }
     if (grepl('Trade History Report', html.title)) {
-      return(MetaQuote.HTML.MT5Trade.Report$new(file.path, file.name))
+      return(MetaQuote.HTML.MT5Trade.Report$new(file.path, file.name, html.parse))
     }
     if (grepl('Closed Trades Report', html.title, file.name)) {
       return(MetaQuote.HTML.MT4M_Closed.Report$new(file.path, file.name))
