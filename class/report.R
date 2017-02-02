@@ -248,6 +248,12 @@ MetaQuote.Report <- R6Class(
       self$set.tickets.member('raw', private$cal.tickets.exit())
     },# FINISH
     
+    output.csv = function(tickets=self$get.tickets.member('raw'), groups, columns, filename, file) {
+      ## ToDo: filename ####
+      .output.csv(tickets, groups, columns, filename, file)
+    },
+    
+    
     ## init tickets ##
     init.ticketss = function(tickets.columns) {
       # ''' init tickets ''' ###
@@ -311,8 +317,6 @@ MetaQuote.Report <- R6Class(
       currency <- self$get.currency()
       base.currency <- private$symbol.base.currency(symbol)
       tick.value.point <- with(private$m.symbol.setting[symbol, ], CON_SIZE * 10 ^ -DIGITS)
-      # print(base.currency)
-      # print(currency)
       if (base.currency == currency) {
         return(tick.value.point)
       }
@@ -1272,3 +1276,14 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
   exit[grep('TP', comments)] <- 'TP'
   exit
 })# FINISH
+
+
+.output.csv <- cmpfun(function(tickets, groups, columns, filename, file) {
+  if ('FILE' %in% columns) {
+    tickets$FILE <- filename
+  }
+  selected.columns <- c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+                        'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', columns)
+  sub.tickets <- subset(tickets, subset = GROUP %in% groups, select = selected.columns)
+  write.csv(sub.tickets, file = file, row.names = FALSE)
+})

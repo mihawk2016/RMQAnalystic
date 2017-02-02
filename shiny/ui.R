@@ -2,66 +2,67 @@ library(shiny)
 library(shinydashboard)
 library(DT)
 
-#### PAGE { ####
+#### PAGE >> ####
 
 #### + HEADER ####
 dashboard.header <- dashboardHeader(title = 'MetaQuote Tools')
 
 #### + SIDEBAR ####
 dashboard.sidebar <- dashboardSidebar(
+  # disable = T,
   sidebarMenu(
     menuItem('Analystic', tabName = 'Analystic', icon = icon('institution'))
   )
 )
 
-#### + BODY { ####
+#### + BODY >> ####
 
-#### ++ FILE UPLOADER { ####
+#### ++ BODY >> INPUT >> ####
 
-#### +++ UPLOAD ####
-file.uploader.upload <- fileInput(
-  inputId = 'file.upload',
+#### +++ BODY >> INPUT >> UPLOAD ####
+input.upload <- fileInput(
+  inputId = 'input.upload',
   label = NULL,
   multiple = T,
   width = '100%'
 )
 
-#### +++ CLEAR ####
-file.uploader.clear <- actionButton(
-  inputId = 'file.clear',
-  label = 'Clear',
+#### +++ BODY >> INPUT >> CLEAR ####
+input.clear <- actionButton(
+  inputId = 'input.clear',
+  label = 'CLEAR',
   icon = shiny::icon('refresh'),
   width = '100%'
 )
 
-## +++ TABLE ####
-file.list.support.list <- DT::dataTableOutput(
-  outputId = 'file.list.support',
+## +++ BODY >> INPUT >> TABLE ####
+input.support.table <- DT::dataTableOutput(
+  outputId = 'input.support.table',
   width = '100%'
 )
 
-file.list.unsupport.list <- DT::dataTableOutput(
-  outputId = 'file.list.unsupport',
+input.unsupport.table <- DT::dataTableOutput(
+  outputId = 'input.unsupport.table',
   width = '100%'
 )
-file.list.support <- tabPanel(
+input.support <- tabPanel(
   title = 'SUPPORT',
-  file.list.support.list
+  input.support.table
 )
 
-file.list.unsupport <- tabPanel(
+input.unsupport <- tabPanel(
   title = 'UNSUPPORT',
-  file.list.unsupport.list
+  input.unsupport.table
 )
 
-file.list <- tabBox(
+input.list <- tabBox(
   width = 12,
-  file.list.support,
-  file.list.unsupport
+  input.support,
+  input.unsupport
 )
-#### ++ FILE UPLOADER } ####
+#### ++ BODY >> INPUT << ####
 
-file.uploader <- box(
+input <- box(
   collapsible = T,
   status = 'danger',
   solidHeader = TRUE,
@@ -69,21 +70,26 @@ file.uploader <- box(
   width = 12,
   column(
     width = 12,
-    file.uploader.upload,
-    file.uploader.clear,
-    hr()
+    input.upload,
+    input.clear
   ),
-  file.list
+  input.list
 )
 
 
-#### + BODY: TABBOX: ANALYSIS ####
+#### ++ BODY >> ANALYSIS >> ####
 
-tabbox.report.account <- tabPanel(title = 'ACCOUNT')
-tabbox.report.symbol <- tabPanel(title = 'SYMBOL')
-tabbox.report.tickets <- tabPanel(title = 'TICKETS')
+#### +++ BODY >> ANALYSIS >> ACCOUNT ####
+analystic.account <- tabPanel(title = 'ACCOUNT')
 
-tabbox.report <- box(
+#### +++ BODY >> ANALYSIS >> SYMBOL ####
+analystic.symbol <- tabPanel(title = 'SYMBOL')
+
+#### +++ BODY >> ANALYSIS >> TICKETS ####
+analystic.tickets <- tabPanel(title = 'TICKETS')
+
+#### +++ BODY >> ANALYSIS << ####
+analystic <- box(
   collapsible = T,
   status = 'warning',
   solidHeader = TRUE,
@@ -91,53 +97,89 @@ tabbox.report <- box(
   width = 12,
   tabBox(
     width = 12,
-    tabbox.report.account,
-    tabbox.report.symbol,
-    tabbox.report.tickets
+    analystic.account,
+    analystic.symbol,
+    analystic.tickets
 ))
 
-#### + BODY } ####
+#### ++ BODY >> OUTPUT >> ####
 
-dashboard.body <- dashboardBody(
-  # Boxes need to be put in a row (or column)
-  file.uploader,
-  # file.uploader,
-  hr(),
-  tabbox.report,
-  tabItems(
-    tabItem(tabName = "Upload",
-            h2("Dashboard tab content")
-    ),
-    
-    tabItem(tabName = "widgets",
-            h2("Widgets tab content")
-    )
+#### +++ BODY >> OUTPUT >> CSV ####
+output.csv <- downloadButton(
+  outputId = 'output.csv',
+  label = 'CSV'
+)
+
+output.csv.groups <- checkboxGroupInput(
+  inputId = 'output.csv.groups',
+  label = 'Choose Ticket Types: ',
+  choices = list(
+    'MONEY' = 'Money',
+    'CLOSED' = 'Closed',
+    'OPEN' = 'Open',
+    'PENDING' = 'Pending',
+    'WORKING' = 'Working'
   ),
-  fluidRow(
-    sidebarPanel(
-      sliderInput("bins",
-                  "Number of bins:",
-                  min = 1,
-                  max = 50,
-                  value = 30)
-    ),
-    box(
-      title = "Controls",
-      sliderInput("slider", "Number of observations:", 1, 100, 50)
-    ),
-    tabBox(
-      side = "right", height = "250px",
-      selected = "Tab3",shiny::icon("gear"),
-      tabPanel("Tab1", "Tab content 1"),
-      tabPanel("Tab2", "Tab content 2"),
-      tabPanel("Tab3", "Note that when side=right, the tab order is reversed.")
-    )
+  selected = c('Money', 'Closed', 'Open'),
+  inline = TRUE
+)
+
+output.csv.columns <- checkboxGroupInput(
+  inputId = 'output.csv.columns',
+  label = 'Choose Extra Columns: ',
+  choices = list(
+    'COMMENT' = 'COMMENT',
+    'GROUP' = 'GROUP'#,
+    # 'FILE NAME' = 'FILE'
+  ),
+  selected =NULL,
+  inline = TRUE
+)
+
+#### +++ BODY >> OUTPUT >> CSV ####
+output.report <- downloadButton(
+  outputId = 'output.report',
+  label = 'REPORT'
+)
+#### ++ BODY >> OUTPUT >> ####
+output <- box(
+  collapsible = T,
+  status = 'success',
+  solidHeader = TRUE,
+  title = 'OUTPUT',
+  width = 12,
+  
+  box(
+    width = 6,
+    title = 'TICKETS',
+    # solidHeader = TRUE,
+    background = NULL,
+    output.csv.groups,
+    output.csv.columns,
+    output.csv
+  ),
+  box(
+    width = 6,
+    title = 'REPORT',
+    # solidHeader = TRUE,
+    background = NULL,
+    output.report
   )
 )
 
-#### PAGE } ####
+#### + BODY << ####
+
+dashboard.body <- dashboardBody(
+  input,
+  analystic,
+  output
+)
+
+#### PAGE << ####
 
 dashboardPage(
+  title = 'Miteke Lab',
+  # skin = 'yellow',
   dashboard.header,
   dashboard.sidebar,
   dashboard.body

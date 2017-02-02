@@ -96,7 +96,7 @@ MetaQuote.ReportInfos <- R6Class(
     return(as.numeric(account))
   }
   NA
-})
+})# FINISH
 
 .format.report.infos.name <- cmpfun(function(name) {
   # ''' format report info: name '''
@@ -106,7 +106,7 @@ MetaQuote.ReportInfos <- R6Class(
   }
   name <- gsub('Name: ', '', name)
   ifelse(name == '', NA, name)
-})
+})# FINISH
 
 .format.report.infos.broker <- cmpfun(function(broker) {
   # ''' format report info: broker '''
@@ -115,7 +115,7 @@ MetaQuote.ReportInfos <- R6Class(
     return(broker)
   }
   gsub(' .*', '', broker)
-})
+})# FINISH
 
 .format.report.infos.currency <- cmpfun(function(currency) {
   # ''' format report info: currency '''
@@ -129,7 +129,7 @@ MetaQuote.ReportInfos <- R6Class(
     currency <- substr(currency, match1, attr(match1, 'match.length') + match1 - 1)
   }
   ifelse(currency == '', NA, currency)
-})
+})# FINISH
 
 .format.report.infos.leverage <- cmpfun(function(leverage) {
   # ''' format report info: leverage '''
@@ -148,10 +148,10 @@ MetaQuote.ReportInfos <- R6Class(
     return(as.numeric(leverage))
   }
   NA
-})
+})# FINISH
 
 .format.report.infos.time <- cmpfun(function(time) {
   # ''' format report info: time '''
   # 2017-01-16: Version 0.1
   .format.time(time)
-})
+})# FINISH
