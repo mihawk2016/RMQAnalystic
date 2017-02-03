@@ -106,7 +106,7 @@ analystic <- box(
 
 #### +++ BODY >> OUTPUT >> CSV ####
 output.csv <- downloadButton(
-  outputId = 'output.csv',
+  outputId = 'output.csv.button',
   label = 'CSV'
 )
 
@@ -136,7 +136,7 @@ output.csv.columns <- checkboxGroupInput(
   inline = TRUE
 )
 
-#### +++ BODY >> OUTPUT >> CSV ####
+#### +++ BODY >> OUTPUT >> REPORT ####
 output.report <- downloadButton(
   outputId = 'output.report',
   label = 'REPORT'
@@ -170,6 +170,7 @@ output <- box(
 #### + BODY << ####
 
 dashboard.body <- dashboardBody(
+  useShinyjs(),
   input,
   analystic,
   output

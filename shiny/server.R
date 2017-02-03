@@ -18,7 +18,7 @@ shiny.input <- function(input, output) {
       datatable(as.matrix(analystic$get.unsupported.files()), selection = 'none', colnames = NULL)
     })
   }
-  all.infos <- analystic$get.all.Reports.infos()
+  all.infos <- subset(analystic$get.all.Reports.infos(), select = -FilePath)
   if (!is.null(all.infos)) {
     output$input.support.table <- renderDataTable({
       datatable(all.infos, selection = 'multiple')
@@ -35,11 +35,34 @@ shiny.clear <- function(input, output) {
   output$input.support.table <- renderDataTable({
     NULL
   })
+  # hide('input.upload')
 }
+
+#### + SHINY-SERVER >> OUTPUT.CSV ####
+# output.csv <- function(input, output) {
+#   
+# }
 
 #### SHINY-SERVER << ####
 shinyServer(function(input, output) {
   observeEvent(input$input.upload, shiny.input(input, output))
-  observeEvent(input$input.clear, shiny.clear)
+  observeEvent(input$input.clear, shiny.clear(input, output))
+
   
+  output$output.csv.button <- downloadHandler(
+    filename = function() {
+      paste0('Tickets', '_xx', '.csv')
+    },
+    content = function(file) {
+      analystic$output.tickets(
+        index = input$input.support.table_rows_selected,
+        groups = input$output.csv.groups,
+        columns = input$output.csv.columns,
+        filename,
+        file = file
+      ) ## ToDo: filename ####
+    }
+  )
+  
+
 })

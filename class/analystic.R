@@ -2,6 +2,7 @@
 ## names(x) <- c(1,2,3) ==>> setNames(x, c(1,2,3))
 ## during calculate profit, if pips == 0, no need to cal tickvalue
 ## 
+## merged report if unique(TICKET) > 1, set new serie of Ticket Number
 
 ## 2017-01-13: Create
 
@@ -204,10 +205,20 @@ MQAnalystic <- R6Class(
     },# FINISH
     
     #### Output ####
-    output.tickets = function() {
+    output.tickets = function(index, groups, columns, filename, file) {
       # ''' output tickets as .csv '''
       # 2017-01-30: Version 
-      
+      self$set.selected.index(index)
+      if (length(index) > 1) {
+        Report <- private$get.selected.merge.Reports()
+      } else {
+        Report <- self$get.Reports(index)[[1]]
+      }
+      tickets <- Report$get.tickets.member('raw')
+      if (is.null(tickets)) {
+        tickets <- Report$init.raw.tickets(self$get.tickets.columns())
+      }
+      Report$output.tickets(tickets, groups, columns, filename, file)
     },
     
     
