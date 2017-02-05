@@ -45,6 +45,10 @@ shiny.clear <- function(input, output) {
 
 #### SHINY-SERVER << ####
 shinyServer(function(input, output) {
+  selected.reports <- reactive({
+    input$input.support.table_rows_selected
+  })
+  
   observeEvent(input$input.upload, shiny.input(input, output))
   observeEvent(input$input.clear, shiny.clear(input, output))
 
@@ -64,5 +68,27 @@ shinyServer(function(input, output) {
     }
   )
   
-
+  output$analystic.tickets.table <- renderDataTable({
+    ## ToDo ####
+    old.selected <- analystic$get.selected.index()
+    selected <- selected.reports()
+    if (!identical(old.selected, selected)) {
+      if (is.null(selected)) {
+        render <- NULL
+      } else {
+        analystic$set.selected.index(selected)
+        report <- analystic$set.analyzing.report()
+        supported.Report <- analystic$init.others(report)
+        tickets <- supported.Report$get.tickets.member('supported')
+        tickets <- format(tickets, nsmall = 2)
+        tickets[is.na(tickets)] <- ''
+        render <- datatable(tickets, selection = 'single')
+      }
+    } else {
+      render <- datatable(as.matrix(c(1,2,3)), selection = 'single', colnames = NULL)
+    }
+    render
+  })
+  
+  
 })

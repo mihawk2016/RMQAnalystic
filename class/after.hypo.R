@@ -14,3 +14,17 @@ library(compiler)
   ## ToDo ####
   
 })
+
+
+.tickets.group.filter <- cmpfun(function(tickets, group.choice) {
+  # ''' tickets filter with column-GROUP '''
+  # 2017-02-05: Version
+  len.group.choices <- length(group.choice)
+  if (len.group.choices < 1) {
+    return(NULL)
+  }
+  if (len.group.choices == 5) {
+    return(tickets)
+  }
+  subset(tickets, subset = GROUP %in% group.choice)
+})# 

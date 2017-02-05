@@ -146,6 +146,10 @@ MetaQuote.Report <- R6Class(
       # 2017-01-24: Version 1.0
     },# FINISH
     
+    init.supported.tickets = function(tickets=self$get.tickets.member('raw')) {
+      .supported.tickets(tickets)
+    },
+    
     #### +++ others ####
     init.others = function(tickets.columns, default.currency, default.leverage, symbol.table, db, timeframe, format.digits, reset=FALSE) {
       # ''' init raw tickets and others '''
@@ -173,6 +177,7 @@ MetaQuote.Report <- R6Class(
         self$init.symbol.setting(symbol.table, symbol.mapping)
       }
       self$init.else(db, timeframe, format.digits)
+      self$set.tickets.member('supported', self$init.supported.tickets())
     },
     
     init.else = function(db, timeframe, format.digits) {
@@ -1287,4 +1292,8 @@ MetaQuote.HTML.MT4M_Raw.Report <- R6Class(
   sub.tickets <- subset(tickets, subset = GROUP %in% groups, select = selected.columns)
   sub.tickets <- format.data.frame(sub.tickets, scientific = FALSE)
   write.csv(sub.tickets, file = file, row.names = FALSE)
+})
+
+.supported.tickets <- cmpfun(function(tickets) {
+  subset(tickets, subset = GROUP == 'Money' || !is.na(Symbol) || Symbol != '')
 })

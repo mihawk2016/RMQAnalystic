@@ -154,7 +154,6 @@ MQAnalystic <- R6Class(
     get.all.Reports.infos = function() {
       all.reports <- self$get.Reports()
       infos <- lapply(all.reports, function(x) x$get.infos.column())
-      TTT <<- infos
       do.call(rbind, infos)
     },
     
@@ -187,11 +186,12 @@ MQAnalystic <- R6Class(
     
     
     set.analyzing.report = function() {
-      index <- self$get.select.index()
+      index <- self$get.selected.index()
       if (is.null(index)) {
         return(NULL)
       }
-      private$merge.reports(self$get.reports(index))
+      analyzing.Report <- private$get.selected.merge.Reports()
+      
       #### ToDo ####
     },
     get.Reports = function(index) {
@@ -220,7 +220,24 @@ MQAnalystic <- R6Class(
       }
       Report$output.tickets(tickets, groups, columns, filename, file)
     },
-    
+    init.others = function(Report, tickets.columns = self$get.tickets.columns(),
+                           default.currency = self$get.default.currency(),
+                           default.leverage = self$get.default.leverage(),
+                           symbol.table = self$get.symbol.table(),
+                           db = self$get.DataCenter(),
+                           timeframe = 'H1',
+                           format.digits = 2, 
+                           reset = FALSE) {
+      Report$init.others(tickets.columns = tickets.columns,
+                         default.currency = default.currency,
+                         default.leverage = default.leverage,
+                         symbol.table = symbol.table,
+                         db = db,
+                         timeframe = timeframe,
+                         format.digits = format.digits, 
+                         reset = reset)
+      Report
+    },
     
     #### TESTING ####
     TESTING = function() {
@@ -263,7 +280,7 @@ MQAnalystic <- R6Class(
     m.unsupported.files = NULL,
     m.Reports = NULL,
     m.selected.index = NULL,
-    
+    m.analyzing.Report = NULL,
     
     #### ++ DEFAULT FUNCTIONS ####
     
@@ -358,7 +375,7 @@ MQAnalystic <- R6Class(
       if (is.null(index) || length(index) == 0) {
         return(NULL)
       }
-      self$get.Reports()[index]
+      self$get.Reports(index)[index]
     },# FINISH
     get.selected.merge.Reports = function() {
       # ''' get merged reports '''
@@ -372,7 +389,6 @@ MQAnalystic <- R6Class(
         report$get.infos.column()
       }))
       merged.Report$set.infos.column(value = infos)
-      # raw <- do.call(rbind, clusterApply(cl, reports, function(report) {
       raw <- do.call(rbind, lapply(reports, function(report) {
         raw.tickets <- report$get.tickets.member('raw')
         if (is.null(raw.tickets)) {

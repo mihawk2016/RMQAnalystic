@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+library(shinyjs)
 library(DT)
 
 #### PAGE >> ####
@@ -86,7 +87,15 @@ analystic.account <- tabPanel(title = 'ACCOUNT')
 analystic.symbol <- tabPanel(title = 'SYMBOL')
 
 #### +++ BODY >> ANALYSIS >> TICKETS ####
-analystic.tickets <- tabPanel(title = 'TICKETS')
+analystic.tickets.table <- DT::dataTableOutput(
+  outputId = 'analystic.tickets.table',
+  width = '100%'
+)
+
+analystic.tickets <- tabPanel(
+  title = 'TICKETS',
+  analystic.tickets.table
+)
 
 #### +++ BODY >> ANALYSIS << ####
 analystic <- box(
