@@ -1,5 +1,5 @@
 TIME <- system.time({
-  rm(list = ls())
+  # rm(list = ls())
   
   
 
@@ -9,10 +9,10 @@ TIME <- system.time({
   library(XML)
   library(stringr)
   
-  sapply(file.path('./class', dir('./class')), source)
+  # sapply(file.path('./class', dir('./class')), source)
   
-  files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
-  files
+  # files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))
+  # files
   
   test.number <- 1:10
   
@@ -34,16 +34,16 @@ TIME <- system.time({
   
   # A$get.unsupported.file()
   
-  A$set.selected.index(1:10)
+  # A$set.selected.index(1:10)
   
-  TEST <- A$TESTING()
+  # TEST <- A$TESTING()
 })
 
 print(TIME)
 
 ## merge 10 files in 60secs
 
-
+## 纯读取infos，10稳健大约6秒 ##5.86 Secs
 # Rprof()
 
 # REPORT <- A$get.reports(1)

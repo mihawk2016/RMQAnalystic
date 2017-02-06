@@ -57,18 +57,19 @@ fetch.html.data <- function(mq.file) {
   # @param mq.names: MetaQuote file-name.
   # @return: data of MetaQuote file.
   # 2017-02-05: Version 0.1
+  library(xml2)
   parse <- tryCatch(
     read_html(mq.file, encoding = 'GBK'),
     error = function(e) read_html(mq.file, encoding = 'UTF-8')
   )
   title <- xml_text(xml_find_first(parse, '//title'))
-  # infos <- 
+  # infos <-
   if (grepl('Strategy Tester:', title)) {
     infos <- fetch.html.data.infos.mt4ea(parse)
     # return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Statement:', title)) {
     infos <- fetch.html.data.infos.mt4trade(parse)
-      # return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
+    # return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Strategy Tester Report', title)) {
     infos <- fetch.html.data.infos.mt5ea(parse)
     # return(MetaQuote.HTML.MT5EA.Report$new(file.path, file.name, html.parse))
@@ -321,4 +322,12 @@ format.time.numeric.to.posixct <- function(time) {
 #   }
 # })
 
-
+p.read.mq.file <- function(cl, mq.files) {
+  # library(parallel)
+  # library(xml2)
+  # mq.files
+  # cl <- makeCluster(detectCores())
+  result <- parLapply(cl, mq.files, read.mq.file)
+  # stopCluster(cl)
+  result
+}
