@@ -16,8 +16,12 @@ mq.file.name <- function(mq.files) {
   # ''' get mq file names (V) '''
   # @param mq.files: MetaQuote files.
   # @return: names of MetaQuote files.
+  # 2017-02-06: Version 0.2 ifelse not good for this. is.data.frame or is.character return 1-length vector.
   # 2017-02-05: Version 0.1
-  ifelse(is.data.frame(mq.files), mq.files$name, basename(mq.files))
+  if (is.data.frame(mq.files)) {
+    return(mq.files$name)
+  }
+  return(basename(mq.files))
 }
 
 # mq.file.extension <- function(mq.names) {
