@@ -66,6 +66,7 @@ fetch.html.data <- function(mq.file) {
   # infos <-
   if (grepl('Strategy Tester:', title)) {
     infos <- fetch.html.data.infos.mt4ea(parse)
+    tickets <- fetch.html.data.tickets.mt4ea(parse)
     # return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Statement:', title)) {
     infos <- fetch.html.data.infos.mt4trade(parse)
@@ -280,54 +281,82 @@ format.time.numeric.to.posixct <- function(time) {
   as.POSIXct(time, origin = '1970-01-01', tz = 'GMT')
 }
 
-# .read.file <- cmpfun(function(file.path, file.name, file.extension) {
-#   # ''' read file '''
-#   # 2017-01-13: ToDo
-#   if (grepl('htm|html', file.extension)) {
-#     html.parse <- htmlParse(file.path, encoding = 'UTF-8')
-#     html.title <- xmlValue(getNodeSet(html.parse,'//title')[[1]])
-#     if (grepl('Strategy Tester:', html.title)) {
-#       return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
-#     }
-#     if (grepl('Statement:', html.title)) {
-#       return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
-#     }
-#     if (grepl('Strategy Tester Report', html.title)) {
-#       return(MetaQuote.HTML.MT5EA.Report$new(file.path, file.name, html.parse))
-#     }
-#     if (grepl('Trade History Report', html.title)) {
-#       return(MetaQuote.HTML.MT5Trade.Report$new(file.path, file.name, html.parse))
-#     }
-#     if (grepl('Closed Trades Report', html.title, file.name)) {
-#       return(MetaQuote.HTML.MT4M_Closed.Report$new(file.path, file.name))
-#     }
-#     if (grepl('Raw Report', html.title, file.name)) {
-#       return(MetaQuote.HTML.MT4M_Raw.Report$new(file.path, file.name))
-#     }
-#     return(NULL)
-#     # MetaQuote.HTML.Report$new(file.path)
-#   } else if (grepl('xlsx|xls', file.extension)) {
-#     return(NULL)
-#     #### ToDo ####
-#     # xlsx_table <- read.xlsx(file.path)
-#     # print(xlsx_table)
-#     # file.csv_xlsx(file.path, xlsx_table)
-#   } else if (grepl('csv', file.extension)) {
-#     return(NULL)
-#     #### ToDo ####
-#     # csv_table <- read.csv(file.path, encoding = 'UTF-8')
-#     # file.csv_xlsx(file.path, csv_table)
-#   } else {
-#     NULL
-#   }
-# })
+
+#### FETCH TICKETS ####
+fetch.html.data.tickets.mt4ea <- function(mq.file.parse) {
+  
+  table.values <- xml_text(xml_find_all(xml_find_all(xml_find_all(mq.file.parse, '//table')[2], './/tr'), './/td'))
+  xml_attr(xml_find_all(xml_find_all(mq.file.parse, '//table')[2], './/td'), 'colspan')
+  xml_length(xml_find_all(xml_find_all(mq.file.parse, '//table')[2], './/tr'))
+  # data.ta
+  # head.lines <- xml_text(xml_find_all(mq.file.parse, '//table')[2])
+  # first.table <- xml_find_first(mq.file.parse, '//table')
+  # time.string <- xml_text(xml_find_all(first.table, '//td')[4])
+  # nchar.time.string <- nchar(time.string)
+  # build.infos(
+  #   type = 'MT4-EA',
+  #   name = head.lines[1],
+  #   broker = head.lines[2],
+  #   time = substr(time.string, nchar.time.string - 10, nchar.time.string - 1)
+  # )
+}
+
+# fetch.html.data.tickets.mt4trade <- function(mq.file.parse) {
+#   
+#   first.row <- xml_text(xml_find_all(xml_find_first(xml_find_first(mq.file.parse, '//table'), './/tr'), './/b'))
+#   build.infos(
+#     type = 'MT4-Trade',
+#     account = first.row[grep('Account', first.row)],
+#     name = first.row[grep('Name', first.row)],
+#     broker = xml_text(xml_find_first(mq.file.parse, '//b')),
+#     currency = first.row[grep('Currency', first.row)],
+#     leverage = first.row[grep('Leverage', first.row)],
+#     time = tail(first.row, 1)
+#   )
+# }
+# 
+# fetch.html.data.tickets.mt5ea <- function(mq.file.parse) {
+#   
+#   table.values <- xml_text(xml_find_all(xml_find_first(mq.file.parse, '//table'), './/td'))
+#   time.string <- table.values[grep('Period:', table.values) + 1]
+#   nchar.time.string <- nchar(time.string)
+#   build.infos(
+#     type = 'MT5-EA',
+#     name = table.values[grep('Expert:', table.values) + 1],
+#     broker = table.values[grep('Broker:', table.values) + 1],
+#     currency = table.values[grep('Currency:', table.values) + 1],
+#     leverage = table.values[grep('Leverage:', table.values) + 1],
+#     time = substr(time.string, nchar.time.string - 10, nchar.time.string - 1)
+#   )
+# }
+# 
+# fetch.html.data.tickets.mt5trade <- function(mq.file.parse) {
+#   
+#   table.values <- xml_text(xml_find_all(xml_find_first(mq.file.parse, '//table'), './/th'))
+#   account.currency.leverage <- table.values[grep('Account:', table.values) + 1]
+#   build.infos(
+#     type = 'MT5-Trade',
+#     account = account.currency.leverage,
+#     name = table.values[grep('Name:', table.values) + 1],
+#     broker = table.values[grep('Broker:', table.values) + 1],
+#     currency = account.currency.leverage,
+#     leverage = account.currency.leverage,
+#     time = format.infos.time(table.values[grep('Date:', table.values) + 1]) - 8 * 3600
+#   )
+# }
+# 
+# fetch.html.data.tickets.mt4m_closed <- function(mq.file.parse) {
+#   build.infos(
+#     type = 'MT4M-Closed'
+#   )
+# }
+# 
+# fetch.html.data.tickets.mt4m_raw <- function(mq.file.parse) {
+#   build.infos(
+#     type = 'MT4M-Raw'
+#   )
+# }
 
 p.read.mq.file <- function(cl, mq.files) {
-  # library(parallel)
-  # library(xml2)
-  # mq.files
-  # cl <- makeCluster(detectCores())
-  result <- parLapply(cl, mq.files, read.mq.file)
-  # stopCluster(cl)
-  result
+  parLapply(cl, mq.files, read.mq.file)
 }
