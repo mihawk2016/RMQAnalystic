@@ -12,6 +12,8 @@ package.list <- search()
 # library(parallel)
 library(XML)
 library(xml2)
+library(data.table)
+library(magrittr)
 source('./NewVersion/functions2.R')
 
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]

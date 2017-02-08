@@ -295,32 +295,15 @@ format.time.numeric.to.posixct <- function(time) {
 
 #### FETCH TICKETS ####
 fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
+  
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'GBK', which = 2,
-                         colClasses = c(rep('character', 3), rep('numeric', 7))) %>%
+                         colClasses = c('character', format.time.all.to.numeric, 'character', rep('numeric', 7))) %>%
     as.data.table %>%
     setNames(c('deal', 'time', 'type', 'tickets', 'volume', 'price', 'sl', 'tp', 'profit', 'balance')) %>%
-    `[`(type != 'modify', -c('deal', 'balance'))
-    # subset(subset = type != 'modify', select = -c(deal, balance))
-    
-  # table <- data.table(table)[-]
-  # tickets <- subset(data.table(table), subset = table[3] != 'modify', select = -c(1, 10))
-  # 
-  # table.values <- xml_text(xml_find_all(xml_find_all(xml_find_all(mq.file.parse, '//table')[2], './/tr'), './/td'))
-  # colspan <- as.numeric(xml_attr(xml_find_all(xml_find_all(mq.file.parse, '//table')[2], './/td'), 'colspan'))
-  # print(xml_length(xml_find_all(xml_find_all(mq.file.parse, '//table'), './/tr'), only_elements = FALSE))
-  # build.html.table(table.values, colspan, 10)
+    extract(type != 'modify', -c('deal', 'balance'))
   
-  # data.ta
-  # head.lines <- xml_text(xml_find_all(mq.file.parse, '//table')[2])
-  # first.table <- xml_find_first(mq.file.parse, '//table')
-  # time.string <- xml_text(xml_find_all(first.table, '//td')[4])
-  # nchar.time.string <- nchar(time.string)
-  # build.infos(
-  #   type = 'MT4-EA',
-  #   name = head.lines[1],
-  #   broker = head.lines[2],
-  #   time = substr(time.string, nchar.time.string - 10, nchar.time.string - 1)
-  # )
+  table[type == 'abc']
+
 }
 
 fetch.html.data.tickets.mt4trade <- function(mq.file) {
