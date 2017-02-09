@@ -310,10 +310,15 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
     xml.text %>%
     extract(24) %>%
     as.numeric
+  time.string <- xml.text[4]
+  len.time.string <- nchar(time.string)
   deposit.time <-
-    xml.text %>%
-    extract(4) %>%
-    substr(nchar(.) - 23, nchar(.) - 14) %>%
+    time.string %>%
+    substr(len.time.string - 23, len.time.string - 14) %>%
+    format.time.all.to.numeric
+  end.time <-
+    time.string %>%
+    substr(len.time.string - 10, len.time.string - 1) %>%
     format.time.all.to.numeric
   money.tickets <- 
     data.table(
@@ -330,7 +335,6 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
     xml.text %>%
     extract(2) %>%
     gsub(' ([ \\(\\)[:alpha:]])*', '', .)
-  # table[, ITEM := item]
   table.index <- 1:rows
   table.types <- table[, type]
   table.tickets <- table[, ticket]
@@ -338,9 +342,9 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
   pending.tickets <-
     if (length(pending.close.part.index) > 0) {
       pending.tickets.ticket <- table.tickets[pending.close.part.index]
-      table.index %<>% extract(-pending.close.part.index)
-      pending.open.part.index <- table.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket]
-      table.index %<>% extract(-pending.open.part.index)
+      table.index %<>% setdiff(pending.close.part.index)
+      pending.open.part.index <- table.index[table.tickets[table.index] %in% pending.tickets.ticket]
+      table.index %<>% setdiff(pending.open.part.index)
       merge(table[pending.open.part.index], table[pending.close.part.index], by = 'ticket') %>%
         setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
                    'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
@@ -349,34 +353,32 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
     } else {
       NULL
     }
-  pending.of.closed.ticktets.index <- which(grepl('(buy|sell) (limit|stop)', table.types[table.index]))
+  pending.of.closed.ticktets.index <- table.index[grepl('(buy|sell) (limit|stop)', table.types[table.index])]
   if (length(pending.of.closed.ticktets.index) > 0) {
-    table.index %<>% extract(-pending.of.closed.ticktets.index)
+    table.index %<>% setdiff(pending.of.closed.ticktets.index)
   }
   closed.tickets <-
     if (length(table.index) > 0) {
-      closed.tickets.open.part.index <- which(grepl('(buy|sell)', table.types[table.index]))
-      print(length(table.index))
-      print(length(closed.tickets.open.part.index))
-      print(table.index[closed.tickets.open.part.index])
-      print(table.index[-closed.tickets.open.part.index])
-      print(table.types[table.index[closed.tickets.open.part.index]])
-      print(table.types[table.index[-closed.tickets.open.part.index]])
-      closed.tickets.open.part.index <- table.index %>% extract(closed.tickets.open.part.index)
-      # print(table.types[closed.tickets.open.part.index])
-      # print(table.types[table.index[-closed.tickets.open.part.index]])
-      closed.tickets.close.part.index <- table.index %<>% extract(-closed.tickets.open.part.index)
-      merge(table[closed.tickets.open.part.index], table[closed.tickets.close.part.index], by = 'ticket') #%>%
-        
-        # setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
-        #            'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
-        # extract(j = (c('ITEM', 'COMMENT')) := list(item, 'cancelled')) %>%
-        # build.tickets('Pending')
+      closed.tickets.open.part.index <- table.index[grepl('(buy|sell)', table.types[table.index])]
+      closed.tickets.close.part.index <- table.index %<>% setdiff(closed.tickets.open.part.index)
+      closed.tickets <- merge(table[closed.tickets.open.part.index], table[closed.tickets.close.part.index], by = 'ticket')
+      part.closed.index <- which(closed.tickets[, volume.x != volume.y])
+      if (length(part.closed.index) > 0) {
+        closed.tickets[part.closed.index, volume.x := volume.y]
+        closed.tickets[part.closed.index + 1, time.x := NA]
+        closed.tickets[, time.x := na.locf(time.x)]
+      }
+      closed.tickets %<>%
+        setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
+                   'CTIME', 'COMMENT', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
+        extract(j = ITEM := item) %>%
+        build.tickets('Closed') %>%
+        extract(CTIME >= end.time - 60 & COMMENT == 'close at stop', EXIT := 'SO')
     } else {
       NULL
     }
   
-  pending.tickets
+  # pending.tickets
 }
 
 fetch.html.data.tickets.mt4trade <- function(mq.file) {
@@ -445,10 +447,10 @@ fetch.html.data.tickets.mt4m_raw <- function(mq.file) {
 #### BUILD TICKETS ####
 TICKETS_COLUMNS <- list(
   Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-              'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
+              'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT', 'EXIT'),
   Money = c('TICKET', 'OTIME', 'PROFIT'),
   Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-             'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+             'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'EXIT'),
   Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
            'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
   Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
@@ -458,6 +460,7 @@ TICKETS_COLUMNS <- list(
 
 build.tickets = function(table, group, columns=TICKETS_COLUMNS[[group]], uniform.columns=TICKETS_COLUMNS$Uniform) {
   # ''' build tickets '''
+  # 2017-01-21: Version 1.1 add 'EXIT' in Closed & Uniform
   # 2017-01-21: Version 1.0 change logic expr to || short way connection
   # 2017-01-17: Version 0.2 add Comment
   # 2017-01-17: Version 0.1
@@ -474,13 +477,50 @@ build.tickets = function(table, group, columns=TICKETS_COLUMNS[[group]], uniform
   ## comment
   if (!'COMMENT' %in% table.columns) {
     table[, COMMENT := '']
+  } else if (group == 'Closed') {
+    table[, EXIT := comment.to.exit(COMMENT)]
   }
   group.columns <- c(columns, c('GROUP', 'COMMENT'))
   table <- table[, (group.columns), with = FALSE]
   ## NAs check
-  na.columns <- uniform.columns[!(uniform.columns %in% group.columns)]
+  na.columns <- uniform.columns[!uniform.columns %in% group.columns]
   if (length(na.columns) > 0) {
     table[, (na.columns) := list(NA)]
   }
   table
 } # FINISH
+
+comment.to.exit <- function(comments) {
+  # ''' comment to exit '''
+  # 2017-02-09: Version 1.2 add ignore.case argument, need not to toupper()
+  # 2017-01-17: Version 1.1 add support for comments type - data.frame
+  # 2016-12-01: Version 1.0
+  comments %<>% gsub('/| / ', '', .)
+  exit <- rep(NA, length(comments))
+  exit[grep('SO', comments, ignore.case = TRUE)] <- 'SO'
+  exit[grep('SL', comments, ignore.case = TRUE)] <- 'SL'
+  exit[grep('TP', comments, ignore.case = TRUE)] <- 'TP'
+  exit
+} # FINISH
+
+item.to.symbol <- function(item, support.symbols) {
+  # ''' item to symbol '''
+  
+  if (is.na(item) || item == '' || grepl('^BX', item, ignore.case = TRUE)) {
+    return('') 
+  }
+  support.symbols = c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
+                      'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
+                      'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
+  symbol <-
+    support.symbols %>%
+    extract(support.symbols %>% str_detect(item)) %>% {
+      if (length(.) == 1) {
+        .
+      } else {
+        ''
+      }
+    }
+}
+
+

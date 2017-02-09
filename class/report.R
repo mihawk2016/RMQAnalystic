@@ -376,7 +376,7 @@ MetaQuote.Report <- R6Class(
       if (is.na(item) || grepl('BX', item)) {
         return('') 
       }
-      symbol <- symbols[str_detect(item, symbols)]
+      symbol <- symbols[str_detect(symbols, item)]
       if (length(symbol) != 1) {
         symbol <- ''
       }

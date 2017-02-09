@@ -16,7 +16,7 @@ library(data.table)
 library(magrittr)
 source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)
@@ -45,8 +45,8 @@ time.old <- system.time({
   # parse <- htmlParse(files)
   # parse <- read_html(files, encoding = 'GBK')
   # table.old <- lapply(files, readHTMLTable)
-  table.old <- readHTMLTable(files, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
-  # old.data <- read.mq.file(files)
+  # table.old <- readHTMLTable(files, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+  old.data <- read.mq.file(files)
 })
 print(time.old)
 print(old.data[[1]])
