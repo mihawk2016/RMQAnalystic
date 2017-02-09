@@ -16,7 +16,7 @@ library(data.table)
 library(magrittr)
 source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)
@@ -28,12 +28,15 @@ files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]
 # ## 8.56 Secs
 
 
-# time.new <- system.time({
-#   # table.new <- read.mq.file(files)
-#   table.new <- readHTMLTable(files, colClasses = c(rep('character', 23)), stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
-# })
-# print(time.new)
-# ## 2.85 Secs
+time.new <- system.time({
+  # table.new <- read.mq.file(files)
+  # table.new <- readHTMLTable(files, colClasses = c(rep('character', 23)), stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+  ht <- read_html(files)
+  tab <- html_nodes(ht, "table")
+  table.new <- html_table(tab[[1]], fill = T)
+})
+print(time.new)
+## 2.85 Secs
 
 
 
@@ -41,8 +44,8 @@ time.old <- system.time({
   # parse <- htmlParse(files)
   # parse <- read_html(files, encoding = 'GBK')
   # table.old <- lapply(files, readHTMLTable)
-  # table.old <- readHTMLTable(files, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
-  old.data <- read.mq.file(files)
+  table.old <- readHTMLTable(files, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+  # old.data <- read.mq.file(files)
 })
 print(time.old)
 
