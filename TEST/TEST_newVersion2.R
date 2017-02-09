@@ -30,7 +30,9 @@ files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]
 
 # time.new <- system.time({
 #   # table.new <- read.mq.file(files)
-#   table.new <- readHTMLTable(files, colClasses = c(rep('character', 23)), stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+#   # table.new <- readHTMLTable(files, colClasses = c(rep('character', 23)), stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+#   parse <- read_html(files)
+#   table <- html_table(parse, fill = TRUE)
 # })
 # print(time.new)
 # ## 2.85 Secs
@@ -45,6 +47,6 @@ time.old <- system.time({
   old.data <- read.mq.file(files)
 })
 print(time.old)
-
+print(old.data[[1]])
 ## 31.58 Secs for parLapply(cl, xx, read.mq.file)
 ## 87.06 Secs for lapply(xxx, read.mq.file)

@@ -71,7 +71,7 @@ fetch.html.data <- function(mq.file) {
   # infos <-
   if (grepl('Strategy Tester:', title)) {
     infos <- fetch.html.data.infos.mt4ea(parse)
-    tickets <- fetch.html.data.tickets.mt4ea(mq.file)
+    tickets <- fetch.html.data.tickets.mt4ea(mq.file, parse)
     # return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Statement:', title)) {
     infos <- fetch.html.data.infos.mt4trade(parse)
@@ -299,11 +299,59 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'GBK', which = 2,
                          colClasses = c('character', format.time.all.to.numeric, 'character', rep('numeric', 7))) %>%
     as.data.table %>%
-    setNames(c('deal', 'time', 'type', 'tickets', 'volume', 'price', 'sl', 'tp', 'profit', 'balance')) %>%
+    setNames(c('deal', 'time', 'type', 'ticket', 'volume', 'price', 'sl', 'tp', 'profit', 'balance')) %>%
     extract(type != 'modify', -c('deal', 'balance'))
+  xml.text <-
+    mq.file.parse %>%
+    xml_find_first('.//table') %>%
+    xml_find_all('.//td') %>%
+    xml_text
+  deposit <-
+    xml.text %>%
+    extract(24) %>%
+    as.numeric
+  deposit.time <-
+    xml.text %>%
+    extract(4) %>%
+    substr(nchar(.) - 23, nchar(.) - 14) %>%
+    format.time.all.to.numeric
+  money.tickets <- 
+    data.table(
+      TICKET = 0,
+      OTIME = deposit.time,
+      PROFIT = deposit
+    ) %>%
+    build.tickets('Money')
+  rows <- nrow(table)
+  if (rows == 0) {
+    return(money.tickets)
+  }
+  item <-
+    xml.text %>%
+    extract(2) %>%
+    gsub(' ([ \\(\\)[:alpha:]])*', '', .)
+  # table[, ITEM := item]
+  table.index <- 1:rows
+  table.types <- table[, type]
+  table.tickets <- table[, tickets]
+  pending.close.part.index <- which(table.types == 'delete')
+  if (length(pending.close.part.index) > 0) {
+    print(table.tickets)
+    pending.tickets.ticket <- table.tickets[pending.close.part.index]
+    print(pending.tickets.ticket)
+    other.index <- table.tickets[-pending.close.part.index]
+    print(other.index)
+    print(other.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket])
+    pending.open.part.index <- other.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket]
+    
+    
+    # print(pending.tickets.tickets)
+    # table <- table[-pending.close.part.index]
+    # setkey(table, ticket)
+    print(table[pending.open.part.index])
+    
+  }
   
-  table[type == 'abc']
-
 }
 
 fetch.html.data.tickets.mt4trade <- function(mq.file) {
@@ -368,3 +416,46 @@ fetch.html.data.tickets.mt4m_raw <- function(mq.file) {
   #   type = 'MT4M-Raw'
   # )
 }
+
+#### BUILD TICKETS ####
+TICKETS_COLUMNS <- list(
+  Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+              'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT'),
+  Money = c('TICKET', 'OTIME', 'PROFIT'),
+  Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+             'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+           'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+              'CTIME', 'CPRICE'),
+  Working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
+)
+
+build.tickets = function(table, group, columns=TICKETS_COLUMNS[[group]], uniform.columns=TICKETS_COLUMNS$Uniform) {
+  # ''' build tickets '''
+  # 2017-01-21: Version 1.0 change logic expr to || short way connection
+  # 2017-01-17: Version 0.2 add Comment
+  # 2017-01-17: Version 0.1
+  if (is.null(table) || nrow(table) == 0) {
+    return(NULL) 
+  }
+  table.columns <- colnames(table)
+  table[, GROUP := group]
+  ## default 0 check
+  zero.columns <- columns[!(columns %in% table.columns)]
+  if (length(zero.columns) > 0) {
+    table[, (zero.columns) := list(0)]
+  }
+  ## comment
+  if (!'COMMENT' %in% table.columns) {
+    table[, COMMENT := '']
+  }
+  group.columns <- c(columns, c('GROUP', 'COMMENT'))
+  table <- table[, (group.columns), with = FALSE]
+  ## NAs check
+  na.columns <- uniform.columns[!(uniform.columns %in% group.columns)]
+  if (length(na.columns) > 0) {
+    table[, (na.columns) := list(NA)]
+  }
+  table
+} # FINISH
