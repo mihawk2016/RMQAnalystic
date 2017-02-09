@@ -333,25 +333,50 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
   # table[, ITEM := item]
   table.index <- 1:rows
   table.types <- table[, type]
-  table.tickets <- table[, tickets]
+  table.tickets <- table[, ticket]
   pending.close.part.index <- which(table.types == 'delete')
-  if (length(pending.close.part.index) > 0) {
-    print(table.tickets)
-    pending.tickets.ticket <- table.tickets[pending.close.part.index]
-    print(pending.tickets.ticket)
-    other.index <- table.tickets[-pending.close.part.index]
-    print(other.index)
-    print(other.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket])
-    pending.open.part.index <- other.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket]
-    
-    
-    # print(pending.tickets.tickets)
-    # table <- table[-pending.close.part.index]
-    # setkey(table, ticket)
-    print(table[pending.open.part.index])
-    
+  pending.tickets <-
+    if (length(pending.close.part.index) > 0) {
+      pending.tickets.ticket <- table.tickets[pending.close.part.index]
+      table.index %<>% extract(-pending.close.part.index)
+      pending.open.part.index <- table.index[table.tickets[-pending.close.part.index] %in% pending.tickets.ticket]
+      table.index %<>% extract(-pending.open.part.index)
+      merge(table[pending.open.part.index], table[pending.close.part.index], by = 'ticket') %>%
+        setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
+                   'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
+        extract(j = (c('ITEM', 'COMMENT')) := list(item, 'cancelled')) %>%
+        build.tickets('Pending')
+    } else {
+      NULL
+    }
+  pending.of.closed.ticktets.index <- which(grepl('(buy|sell) (limit|stop)', table.types[table.index]))
+  if (length(pending.of.closed.ticktets.index) > 0) {
+    table.index %<>% extract(-pending.of.closed.ticktets.index)
   }
+  closed.tickets <-
+    if (length(table.index) > 0) {
+      closed.tickets.open.part.index <- which(grepl('(buy|sell)', table.types[table.index]))
+      print(length(table.index))
+      print(length(closed.tickets.open.part.index))
+      print(table.index[closed.tickets.open.part.index])
+      print(table.index[-closed.tickets.open.part.index])
+      print(table.types[table.index[closed.tickets.open.part.index]])
+      print(table.types[table.index[-closed.tickets.open.part.index]])
+      closed.tickets.open.part.index <- table.index %>% extract(closed.tickets.open.part.index)
+      # print(table.types[closed.tickets.open.part.index])
+      # print(table.types[table.index[-closed.tickets.open.part.index]])
+      closed.tickets.close.part.index <- table.index %<>% extract(-closed.tickets.open.part.index)
+      merge(table[closed.tickets.open.part.index], table[closed.tickets.close.part.index], by = 'ticket') #%>%
+        
+        # setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
+        #            'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
+        # extract(j = (c('ITEM', 'COMMENT')) := list(item, 'cancelled')) %>%
+        # build.tickets('Pending')
+    } else {
+      NULL
+    }
   
+  pending.tickets
 }
 
 fetch.html.data.tickets.mt4trade <- function(mq.file) {
