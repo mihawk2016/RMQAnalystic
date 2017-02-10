@@ -16,7 +16,7 @@ library(data.table)
 library(magrittr)
 source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)

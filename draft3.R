@@ -28,32 +28,56 @@
 # b <- A$private_methods$TEST.Private(5)
 
 
-A <- data.frame(matrix(nrow = 200, ncol = 200))
+# A <- data.frame(matrix(nrow = 200, ncol = 200))
+# 
+# B <- A
+# rbind.time <- system.time(
+#   for (i in 1: 50) {
+#     B <- rbind(B, A)
+#   }
+# )
+# print(rbind.time) ## 9.31 Secs
+# 
+# B <- A
+# lapply.time <- system.time(
+#   lapply(1:50, function(x) B <<- rbind(B, A))
+# )
+# print(lapply.time) ## 7.48 Secs
+# 
+# B <- vector('list', 50) ## 0.84 Secs
+# # B <- list() ## 1.40 Secs
+# list.time <- system.time(
+#   D <- do.call(rbind, lapply(1:50, function(x) B[x] <<- A))
+# )
+# print(list.time) ## 0.84 Secs
+# 
+# 
+# B <- data.frame(matrix(nrow = 200 * 50, ncol = 200))
+# df.time <- system.time(
+#   lapply(1:50, function(x) B[(1+(x-1)*200):(200*x), ] <- A)
+# )
+# print(df.time) ## 1.09 Secs
+rm(list = ls())
 
-B <- A
-rbind.time <- system.time(
-  for (i in 1: 50) {
-    B <- rbind(B, A)
-  }
-)
-print(rbind.time) ## 9.31 Secs
+n <- 100000000
+xx <- c(A = 'x', B = 'y')
 
-B <- A
-lapply.time <- system.time(
-  lapply(1:50, function(x) B <<- rbind(B, A))
-)
-print(lapply.time) ## 7.48 Secs
+A1 <- data.table(X = c(rep('A', n), rep('B', n)))
+time1 <- system.time({
+  res1 <- A1[, X := xx[X], by = X]
+})
+print(time1)
 
-B <- vector('list', 50) ## 0.84 Secs
-# B <- list() ## 1.40 Secs
-list.time <- system.time(
-  D <- do.call(rbind, lapply(1:50, function(x) B[x] <<- A))
-)
-print(list.time) ## 0.84 Secs
+A2 <- data.table(X = c(rep('A', n), rep('B', n)))
+time2 <- system.time({
+  res2 <- A2[, X := xx[X[1]], by = X]
+})
+print(time2)
 
+A3 <- data.table(X = c(rep('A', n), rep('B', n)))
+time3 <- system.time({
+  res3 <- A3[, X := xx[X]]
+})
+print(time3)
 
-B <- data.frame(matrix(nrow = 200 * 50, ncol = 200))
-df.time <- system.time(
-  lapply(1:50, function(x) B[(1+(x-1)*200):(200*x), ] <- A)
-)
-print(df.time) ## 1.09 Secs
+cat(identical(res1, res2), identical(res1, res3))

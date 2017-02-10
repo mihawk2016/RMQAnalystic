@@ -75,7 +75,7 @@ fetch.html.data <- function(mq.file) {
     # return(MetaQuote.HTML.MT4EA.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Statement:', title)) {
     infos <- fetch.html.data.infos.mt4trade(parse)
-    tickets <- fetch.html.data.tickets.mt4trade(mq.file)
+    tickets <- fetch.html.data.tickets.mt4trade(mq.file, parse)
     # return(MetaQuote.HTML.MT4Trade.Report$new(file.path, file.name, html.parse))
   } else if (grepl('Strategy Tester Report', title)) {
     infos <- fetch.html.data.infos.mt5ea(parse)
@@ -294,7 +294,9 @@ format.time.numeric.to.posixct <- function(time) {
 
 
 #### FETCH TICKETS ####
-fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
+fetch.html.data.tickets.mt4ea <- function(
+  mq.file, mq.file.parse,
+  symbols.setting=SYMBOLS.SETTING) {
   
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'GBK', which = 2,
                          colClasses = c('character', format.time.all.to.numeric, 'character', rep('numeric', 7))) %>%
@@ -374,6 +376,15 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
         extract(j = ITEM := item) %>%
         build.tickets('Closed') %>%
         extract(CTIME >= end.time - 60 & COMMENT == 'close at stop', EXIT := 'SO')
+      symbol <- item.to.symbol(item)
+      if (symbol != '') {
+        
+        closed.tickets[, {
+          pips <- cal.pips(TYPE, OPRICE, CPRICE, symbols.setting[symbol, DIGITS])
+          tickvalue <- cal.tick.value(symbol, CTIME)## ToDo ####
+          ## ToDo ####
+        }]
+      }
     } else {
       NULL
     }
@@ -381,9 +392,29 @@ fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse) {
   # pending.tickets
 }
 
-fetch.html.data.tickets.mt4trade <- function(mq.file) {
+fetch.html.data.tickets.mt4trade <- function(mq.file, mq.file.parse) {
   
-  table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1)
+  table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1) %>%
+    as.data.table %>%
+    extract(j = COMMENT :=
+              xml_find_first(mq.file.parse, './/table') %>%
+              xml_find_all('.//tr') %>%
+              xml_find_first('.//td') %>%
+              xml_attr('title', default = '') %>%
+              extract(-1)) %>%
+    extract((.) %>%
+              extract(j = V1) %>%
+              str_detect('[:digit:]')) %>%
+    setNames(TICKETS.COLUMNS$UNIFORM[1:15])
+  
+  # comments <-
+  #   xml_find_first(mq.file.parse, './/table') %>%
+  #   xml_find_all('.//tr') %>%
+  #   xml_find_first('.//td') %>%
+  #   xml_attr('title') %>%
+  #   extract(-1)
+  
+  
   # first.row <- xml_text(xml_find_all(xml_find_first(xml_find_first(mq.file.parse, '//table'), './/tr'), './/b'))
   # build.infos(
   #   type = 'MT4-Trade',
@@ -445,50 +476,9 @@ fetch.html.data.tickets.mt4m_raw <- function(mq.file) {
 }
 
 #### BUILD TICKETS ####
-TICKETS_COLUMNS <- list(
-  Uniform = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-              'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'GROUP', 'COMMENT', 'EXIT'),
-  Money = c('TICKET', 'OTIME', 'PROFIT'),
-  Closed = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-             'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'EXIT'),
-  Open = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-           'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
-  Pending = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
-              'CTIME', 'CPRICE'),
-  Working = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
-)
 
-build.tickets = function(table, group, columns=TICKETS_COLUMNS[[group]], uniform.columns=TICKETS_COLUMNS$Uniform) {
-  # ''' build tickets '''
-  # 2017-01-21: Version 1.1 add 'EXIT' in Closed & Uniform
-  # 2017-01-21: Version 1.0 change logic expr to || short way connection
-  # 2017-01-17: Version 0.2 add Comment
-  # 2017-01-17: Version 0.1
-  if (is.null(table) || nrow(table) == 0) {
-    return(NULL) 
-  }
-  table.columns <- colnames(table)
-  table[, GROUP := group]
-  ## default 0 check
-  zero.columns <- columns[!(columns %in% table.columns)]
-  if (length(zero.columns) > 0) {
-    table[, (zero.columns) := list(0)]
-  }
-  ## comment
-  if (!'COMMENT' %in% table.columns) {
-    table[, COMMENT := '']
-  } else if (group == 'Closed') {
-    table[, EXIT := comment.to.exit(COMMENT)]
-  }
-  group.columns <- c(columns, c('GROUP', 'COMMENT'))
-  table <- table[, (group.columns), with = FALSE]
-  ## NAs check
-  na.columns <- uniform.columns[!uniform.columns %in% group.columns]
-  if (length(na.columns) > 0) {
-    table[, (na.columns) := list(NA)]
-  }
-  table
-} # FINISH
+
+
 
 comment.to.exit <- function(comments) {
   # ''' comment to exit '''
@@ -503,17 +493,13 @@ comment.to.exit <- function(comments) {
   exit
 } # FINISH
 
-item.to.symbol <- function(item, support.symbols) {
+item.to.symbol <- function(item, support.symbols=SUPPORT.SYMBOLS) {
   # ''' item to symbol '''
   
   if (is.na(item) || item == '' || grepl('^BX', item, ignore.case = TRUE)) {
     return('') 
   }
-  support.symbols = c('AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD',
-                      'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD',
-                      'GBPUSD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD')
-  symbol <-
-    support.symbols %>%
+  support.symbols %>%
     extract(support.symbols %>% str_detect(item)) %>% {
       if (length(.) == 1) {
         .
@@ -523,4 +509,106 @@ item.to.symbol <- function(item, support.symbols) {
     }
 }
 
+cal.profits <- function(volume, tickvalue, pips) {
+  # ''' calculate profit from: volume, tickvalue, pips '''
+  # 2016-08-15: Version 1.0
+  volume * tickvalue * pips
+}
 
+cal.pips <- function(type, open.price, close.price, digit) {
+  # ''' calculate pips (V) '''
+  # 2017-02-10: Version 1.1 ifelse mode
+  # 2017-01-22: Version 1.0
+  ifelse(grepl('buy', type, ignore.case = TRUE), close.price - open.price, open.price - close.price) %>%
+    multiply_by(10 ^ digit)
+} # FINISH
+
+cal.tick.value = function(
+  symbol, times, get.open.fun, timeframe='M1',
+  currency=DEFAULT.CURRENCY, symbols.setting=SYMBOLS.SETTING, support.symbols=SUPPORT.SYMBOLS) {
+  # ''' cal tick.value '''
+  # 2017-01-23: Version 0.1
+  base.currency <- symbol.base.currency(symbol)
+  tick.value.point <- symbols.setting[symbol, TICKVALUE.POINT]
+  if (base.currency == currency) {
+    return(tick.value.point)
+  }
+  target.symbol <- build.symbol(base.currency, currency, support.symbols)
+  if (target.symbol == '') {
+    return(1)
+  }
+  target.open <- get.open.fun(target.symbol, times, timeframe)
+  tick.value.point %>% {
+    if (base.currency == symbol.base.currency(target.symbol)) {
+      divide_by(target.open)
+    } else {
+      multiply_by(target.open)
+    }
+  }
+}
+
+cal.margin.required = function(
+  symbol, times, get.open.fun, timeframe='M1', currency=DEFAULT.CURRENCY, leverage=DEFAULT.LEVERAGE,
+  symbols.setting=SYMBOLS.SETTING, support.symbols=SUPPORT.SYMBOLS) {
+  # ''' cal margin required '''
+  # 2017-01-23: Version 0.1
+  quote.currency <- symbol.quote.currency(symbol)
+  margin.required.point <- symbols.setting[symbol, CONTRACT.SIZE] / leverage
+  if (quote.currency == currency) {
+    return(margin.required.point)
+  }
+  target.symbol <- build.symbol(quote.currency, currency, support.symbols)
+  if (target.symbol == '') {
+    return(1000)
+  }
+  target.open <- get.open.fun(target.symbol, times, timeframe)
+  margin.required.point %>% {
+    if (quote.currency == symbol.quote.currency(target.symbol)) {
+      multiply_by(target.open)
+    } else {
+      divide_by(target.open)
+    }
+  }
+}
+
+symbol.base.currency <- function(symbol) {
+  # ''' symbol's base currency '''
+  # 2017-01-23: Version 1.0
+  substr(symbol, 4, 6)
+} # FINISH
+
+symbol.quote.currency <- function(symbol) {
+  # ''' symbol's quote currency '''
+  # 2017-01-23: Version 1.0
+  substr(symbol, 1, 3)
+} # FINISH
+
+build.symbol <- function(currency1, currency2, support.symbols=SUPPORT.SYMBOLS) {
+  # ''' build symbol from 2 currencies '''
+  # 2016-08-12: Version 1.0 FIX support.symbols: self$get.support.symbols() should usd all symbol table
+  
+  match.currency1.symbols <-
+    support.symbols %>%
+    extract(support.symbols %>% str_detect(currency1))
+  match.currency1.symbols %>%
+    extract(match.currency1.symbols %>% str_detect(currency2)) %>% {
+      if (length(.) == 1) {
+        .
+      } else {
+        ''
+      }
+    }
+} # FINISH
+
+TICKETS.COLUMNS <- list(
+  UNIFORM = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+              'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'COMMENT', 'GROUP', 'EXIT'),
+  MONEY = c('TICKET', 'OTIME', 'PROFIT'),
+  CLOSED = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+             'CTIME', 'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT', 'EXIT'),
+  OPEN = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+           'CPRICE', 'COMMISSION', 'TAXES', 'SWAP', 'PROFIT'),
+  PENDING = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP',
+              'CTIME', 'CPRICE'),
+  WORKING = c('TICKET', 'OTIME', 'TYPE', 'VOLUME', 'ITEM', 'OPRICE', 'SL', 'TP', 'CPRICE')
+)
