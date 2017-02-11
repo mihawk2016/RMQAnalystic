@@ -2,18 +2,19 @@
 rm(list = ls())
 
 package.list <- search()
-# if ('package:RMitekeLab' %in% package.list) {
-#   detach('package:RMitekeLab', unload = TRUE)
-# }
+if ('package:RMitekeLab' %in% package.list) {
+  detach('package:RMitekeLab', unload = TRUE)
+}
 # if ('package:parallel' %in% package.list) {
 #   detach('package:parallel', unload = TRUE)
 # }
-# library(RMitekeLab)
+library(RMitekeLab)
 # library(parallel)
 library(XML)
 library(xml2)
 library(data.table)
 library(magrittr)
+library(stringr)
 source('./NewVersion/functions2.R')
 
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5]
@@ -49,6 +50,6 @@ time.old <- system.time({
   old.data <- read.mq.file(files)
 })
 print(time.old)
-print(old.data[[1]])
+print(T <- old.data[[1]])
 ## 31.58 Secs for parLapply(cl, xx, read.mq.file)
 ## 87.06 Secs for lapply(xxx, read.mq.file)

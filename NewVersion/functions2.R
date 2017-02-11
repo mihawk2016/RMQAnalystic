@@ -301,7 +301,7 @@ fetch.html.data.tickets.mt4ea <- function(
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'GBK', which = 2,
                          colClasses = c('character', format.time.all.to.numeric, 'character', rep('numeric', 7))) %>%
     as.data.table %>%
-    setNames(c('deal', 'time', 'type', 'ticket', 'volume', 'price', 'sl', 'tp', 'profit', 'balance')) %>%
+    set_colnames(c('deal', 'time', 'type', 'ticket', 'volume', 'price', 'sl', 'tp', 'profit', 'balance')) %>%
     extract(type != 'modify', -c('deal', 'balance'))
   xml.text <-
     mq.file.parse %>%
@@ -328,9 +328,9 @@ fetch.html.data.tickets.mt4ea <- function(
       OTIME = deposit.time,
       PROFIT = deposit
     ) %>%
-    build.tickets('Money')
+    build.tickets('MONEY')
   rows <- nrow(table)
-  if (rows == 0) {
+  if (!rows) {
     return(money.tickets)
   }
   item <-
@@ -348,10 +348,10 @@ fetch.html.data.tickets.mt4ea <- function(
       pending.open.part.index <- table.index[table.tickets[table.index] %in% pending.tickets.ticket]
       table.index %<>% setdiff(pending.open.part.index)
       merge(table[pending.open.part.index], table[pending.close.part.index], by = 'ticket') %>%
-        setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
+        set_colnames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
                    'CTIME', '', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
         extract(j = (c('ITEM', 'COMMENT')) := list(item, 'cancelled')) %>%
-        build.tickets('Pending')
+        build.tickets('PENDING')
     } else {
       NULL
     }
@@ -371,10 +371,10 @@ fetch.html.data.tickets.mt4ea <- function(
         closed.tickets[, time.x := na.locf(time.x)]
       }
       closed.tickets %<>%
-        setNames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
+        set_colnames(c('TICKET', 'OTIME', 'TYPE', '', 'OPRICE', '', '', '',
                    'CTIME', 'COMMENT', 'VOLUME', 'CPRICE', 'SL', 'TP', 'PROFIT')) %>%
         extract(j = ITEM := item) %>%
-        build.tickets('Closed') %>%
+        build.tickets('CLOSED') %>%
         extract(CTIME >= end.time - 60 & COMMENT == 'close at stop', EXIT := 'SO')
       symbol <- item.to.symbol(item)
       if (symbol != '') {
@@ -395,36 +395,46 @@ fetch.html.data.tickets.mt4ea <- function(
 fetch.html.data.tickets.mt4trade <- function(mq.file, mq.file.parse) {
   
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 1) %>%
-    as.data.table %>%
+    as.data.table
+  ticket.index <-
+    table[j = V1] %>%
+    str_detect('[:digit:]') %>%
+    which
+  if (!length(ticket.index)) {
+    return(NULL)
+  }
+  table %<>%
+    extract(ticket.index) %>%
     extract(j = COMMENT :=
               xml_find_first(mq.file.parse, './/table') %>%
               xml_find_all('.//tr') %>%
               xml_find_first('.//td') %>%
               xml_attr('title', default = '') %>%
-              extract(-1)) %>%
-    extract((.) %>%
-              extract(j = V1) %>%
-              str_detect('[:digit:]')) %>%
-    setNames(TICKETS.COLUMNS$UNIFORM[1:15])
+              extract(-1) %>%
+              extract(ticket.index)) %>%
+    set_colnames(TICKETS.COLUMNS$UNIFORM[1:15]) %>%
+    setkey(CTIME) %>%
+    extract('', CTIME := NA_character_) %>%
+    extract(j = NAs := rowSums(is.na(.))) %>%
+    setkey(NAs)
+  money.tickets <-
+    table[NAs == 9] %>%
+    extract(j = PROFIT := ITEM) %>%
+    extract(j = .(TICKET, OTIME, PROFIT, COMMENT)) %>%
+    build.tickets('MONEY')
+  closed.tickets <-
+    table[NAs == 0] %>%
+    build.tickets('CLOSED')
+  open.tickets <-
+    table[NAs == 1] %>%
+    build.tickets('OPEN')
+  pending.tickets <-
+    table[NAs == 3] %>%
+    build.tickets('PENDING')
+  working.tickets <-
+    table[NAs == 4] %>%
+    build.tickets('WORKING')
   
-  # comments <-
-  #   xml_find_first(mq.file.parse, './/table') %>%
-  #   xml_find_all('.//tr') %>%
-  #   xml_find_first('.//td') %>%
-  #   xml_attr('title') %>%
-  #   extract(-1)
-  
-  
-  # first.row <- xml_text(xml_find_all(xml_find_first(xml_find_first(mq.file.parse, '//table'), './/tr'), './/b'))
-  # build.infos(
-  #   type = 'MT4-Trade',
-  #   account = first.row[grep('Account', first.row)],
-  #   name = first.row[grep('Name', first.row)],
-  #   broker = xml_text(xml_find_first(mq.file.parse, '//b')),
-  #   currency = first.row[grep('Currency', first.row)],
-  #   leverage = first.row[grep('Leverage', first.row)],
-  #   time = tail(first.row, 1)
-  # )
 }
 
 fetch.html.data.tickets.mt5ea <- function(mq.file) {
