@@ -294,9 +294,8 @@ format.time.numeric.to.posixct <- function(time) {
 
 
 #### FETCH TICKETS ####
-fetch.html.data.tickets.mt4ea <- function(
-  mq.file, mq.file.parse,
-  symbols.setting=SYMBOLS.SETTING) {
+fetch.html.data.tickets.mt4ea <- function(mq.file, mq.file.parse,
+                                          symbols.setting=SYMBOLS.SETTING) {
   
   table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'GBK', which = 2,
                          colClasses = c('character', format.time.all.to.numeric, 'character', rep('numeric', 7))) %>%
@@ -322,7 +321,7 @@ fetch.html.data.tickets.mt4ea <- function(
     time.string %>%
     substr(len.time.string - 10, len.time.string - 1) %>%
     format.time.all.to.numeric
-  money.tickets <- 
+  money.tickets <-
     data.table(
       TICKET = 0,
       OTIME = deposit.time,
@@ -378,7 +377,7 @@ fetch.html.data.tickets.mt4ea <- function(
         extract(CTIME >= end.time - 60 & COMMENT == 'close at stop', EXIT := 'SO')
       symbol <- item.to.symbol(item)
       if (symbol != '') {
-        
+
         closed.tickets[, {
           pips <- cal.pips(TYPE, OPRICE, CPRICE, symbols.setting[symbol, DIGITS])
           tickvalue <- cal.tick.value(symbol, CTIME)## ToDo ####
@@ -388,7 +387,7 @@ fetch.html.data.tickets.mt4ea <- function(
     } else {
       NULL
     }
-  
+
   # pending.tickets
 }
 
@@ -439,7 +438,8 @@ fetch.html.data.tickets.mt4trade <- function(mq.file, mq.file.parse) {
 
 fetch.html.data.tickets.mt5ea <- function(mq.file) {
   
-  table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 2)
+  table <- readHTMLTable(mq.file, stringsAsFactors = FALSE, encoding = 'UTF-8', which = 2,
+                         colClasses = c('character', 'numeric', rep('character', 3), rep('numeric', 7), 'character')) #%>%
   # table.values <- xml_text(xml_find_all(xml_find_first(mq.file.parse, '//table'), './/td'))
   # time.string <- table.values[grep('Period:', table.values) + 1]
   # nchar.time.string <- nchar(time.string)
