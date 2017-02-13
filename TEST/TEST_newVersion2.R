@@ -17,7 +17,7 @@ library(magrittr)
 library(stringr)
 # source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5:6]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)
@@ -38,7 +38,7 @@ files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5:6]
 # })
 # print(time.new)
 # ## 2.85 Secs
-%>% 
+# %>% 
 
 
 
@@ -51,11 +51,18 @@ time.old <- system.time({
   # xml2parse <- read_html(files)
   # readHTMLTable(xml2parse)
   # htmlParse(files)
-  old.data <- read.mq.file(files)
+  
+  # old.data <- read.mq.file(files)
+  # print(get.tickets.raw())
+  old.data <- fetch.html.data.tickets.mt4m_closed(files)
 })
-print(time.old)
-print(T <- old.data[[1]])
-print(get.tickets.raw())
+print(old.data)
+
+# print(time.old)
+# print(T <- old.data[[1]])
+# print(str(get.tickets.raw()[[1]]))
+
+
 ## 31.58 Secs for parLapply(cl, xx, read.mq.file)
 ## 87.06 Secs for lapply(xxx, read.mq.file)
 
