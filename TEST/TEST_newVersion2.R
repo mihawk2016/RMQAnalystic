@@ -17,7 +17,7 @@ library(magrittr)
 library(stringr)
 # source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[5:6]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)
@@ -55,6 +55,7 @@ time.old <- system.time({
 })
 print(time.old)
 print(T <- old.data[[1]])
+print(get.tickets.raw())
 ## 31.58 Secs for parLapply(cl, xx, read.mq.file)
 ## 87.06 Secs for lapply(xxx, read.mq.file)
 
