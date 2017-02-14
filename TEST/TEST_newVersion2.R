@@ -17,7 +17,7 @@ library(magrittr)
 library(stringr)
 # source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[10]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[7]
 
 # cl <- makeCluster(detectCores())
 # # clusterExport(cl, files)
@@ -54,8 +54,9 @@ time.old <- system.time({
   
   # old.data <- read.mq.file(files)
   # print(get.tickets.raw())
-  old.data <- fetch.html.data.tickets.mt4m_raw(files)
+  # old.data <- fetch.html.data.tickets.mt4m_raw(files)
   # old.data <- fetch.html.data.tickets.mt4m_closed(files)
+  old.data <- fetch.html.data.tickets.mt5ea(files)
 })
 print(old.data)
 
