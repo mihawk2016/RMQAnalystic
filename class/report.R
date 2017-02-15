@@ -949,6 +949,7 @@ MetaQuote.HTML.MT5Trade.Report <- R6Class(
       deals <- .html.mt5.ea_trade.tickets.block(tickets.table, first.col, spaces.index, 'Deals')
       positions.market.price <- .html.mt5.trade.tickets.positions.market.price(positions)
       private$get.html.mt5.money_closed_open(deals, tickets.columns, positions.market.price)
+      ## ToDo: missing some for workings
       self$format.tickets()
       self$sort.tickets()
     } # FINISH
