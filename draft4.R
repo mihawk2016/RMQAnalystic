@@ -23,3 +23,7 @@
 # }
 # 
 # print(aaa <- read.data.csv(file))
+
+A <- data.table(X = 1:10, Y = LETTERS[1:10])
+A[, Z := NA]
+A[, Z := {print(is.na(Z))}]

@@ -17,9 +17,9 @@ library(magrittr)
 library(stringr)
 # source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[6]
 
-# cl <- makeCluster(detectCores())
+cl <- makeCluster(detectCores())
 # clusterExport(cl, envir = METAQUOTE.ANALYSTIC)
 # clusterEvalQ(cl, {library(RMitekeLab); NULL})
 
