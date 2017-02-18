@@ -26,3 +26,5 @@ library(RMitekeLab)
 # print(A <- tickets.statistics.by.result(EDITED.TICKETS[RESULT == 'PROFIT']))
 
 print(cal.continuous(c(1,1,2,3)))
+
+print(maxdrawdown(c(1,5,8,-1,-5,5,4,3,8,2,1)))
