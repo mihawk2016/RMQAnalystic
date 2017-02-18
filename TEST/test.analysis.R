@@ -23,4 +23,6 @@ library(RMitekeLab)
 # print(not.supported.items(tickets.raw = RAW.TICKETS))
 # print(tickets.period(TEST.TICKETS))
 
-print(A <- tickets.statistics.by.result(EDITED.TICKETS[RESULT == 'PROFIT']))
+# print(A <- tickets.statistics.by.result(EDITED.TICKETS[RESULT == 'PROFIT']))
+
+print(cal.continuous(c(1,1,2,3)))
