@@ -23,8 +23,20 @@ library(RMitekeLab)
 # print(not.supported.items(tickets.raw = RAW.TICKETS))
 # print(tickets.period(TEST.TICKETS))
 
-# print(A <- tickets.statistics.by.result(EDITED.TICKETS[RESULT == 'PROFIT']))
+print(A <- tickets.statistics.by.result(EDITED.TICKETS))
+print(B <- tickets.statistics.summary(A))
 
-print(cal.continuous(c(1,1,2,3)))
+# print(cal.continuous(c(1,1,2,3)))
+#
+# print(maxdrawdown(c(1,5,8,-1,-5,5,4,3,8,2,1)))
 
-print(maxdrawdown(c(1,5,8,-1,-5,5,4,3,8,2,1)))
+# print(A <- tickets.statistics.by.exit(EDITED.TICKETS))
+
+# print(A <- tickets.statistics.continuous(EDITED.TICKETS))
+
+# print(A <- EDITED.TICKETS[, tickets.statistics.by.result(.SD) ,by = SYMBOL])
+
+
+
+# melt(A, c('SYMBOL', 'RESULT')) -> B
+# dcast(B, SYMBOL ~ variable + RESULT)
