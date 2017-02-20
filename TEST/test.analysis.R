@@ -4,6 +4,7 @@ load(file = './TEST/Raw.Tickets.rdata')
 load(file = './TEST/Supported.Tickets.rdata')
 load(file = './TEST/Editing.Tickets.rdata')
 load(file = './TEST/Edited.Tickets.rdata')
+load(file = './TEST/Price.rdata')
 
 package.list <- search()
 if ('package:RMitekeLab' %in% package.list) {
@@ -21,10 +22,15 @@ library(RMitekeLab)
 
 # print(tickets.supported(tickets.raw = RAW.TICKETS))
 # print(not.supported.items(tickets.raw = RAW.TICKETS))
-# print(tickets.period(TEST.TICKETS))
+print(system.time({
+  print(A <- tickets.period(EDITED.TICKETS))
+  print(B <- price.data(EDITED.TICKETS, A))
+  
+}))
 
-print(A <- tickets.statistics.by.result(EDITED.TICKETS))
-print(B <- tickets.statistics.summary(A))
+
+# print(A <- tickets.statistics.by.result(EDITED.TICKETS))
+# print(B <- tickets.statistics.summary(A))
 
 # print(cal.continuous(c(1,1,2,3)))
 #
