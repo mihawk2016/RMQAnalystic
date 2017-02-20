@@ -24,6 +24,31 @@
 # 
 # print(aaa <- read.data.csv(file))
 
-A <- data.table(X = 1:10, Y = LETTERS[1:10])
-A[, Z := NA]
-A[, Z := {print(is.na(Z))}]
+# A <- data.table(X = 1:10, Y = LETTERS[1:10])
+# A[, Z := NA]
+# A[, Z := {print(is.na(Z))}]
+
+# TEST.fun <- function() {
+#   a <- environment()
+#   print(a)
+#   test.inner.fun <- function() {
+#     assign('x', 1, envir = a)
+#   }
+#   print(a$x)
+#   test.inner.fun()
+#   x
+# }
+# 
+# TEST.fun()
+
+
+XX <- PRICE
+
+symbols <- names(XX)
+
+serie.columns <- c('PROFIT', 'FLOATING', 'PL.VOLUME', 'VOLUME', 'MAX.FLOATING', 'MIN.FLOATING')
+YY <- lapply(symbols, function(symbol) {
+  XX[[symbol]] %>%
+    extract(j = (serie.columns) := 0)
+}) %>%
+  set_names(symbols)

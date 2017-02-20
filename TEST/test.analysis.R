@@ -22,11 +22,11 @@ library(RMitekeLab)
 
 # print(tickets.supported(tickets.raw = RAW.TICKETS))
 # print(not.supported.items(tickets.raw = RAW.TICKETS))
-print(system.time({
-  print(A <- tickets.period(EDITED.TICKETS))
-  print(B <- price.data(EDITED.TICKETS, A))
-  
-}))
+# print(system.time({
+  # print(A <- tickets.period(EDITED.TICKETS))
+  # print(B <- price.data(EDITED.TICKETS, A))
+#   
+# }))
 
 
 # print(A <- tickets.statistics.by.result(EDITED.TICKETS))
@@ -42,6 +42,11 @@ print(system.time({
 
 # print(A <- EDITED.TICKETS[, tickets.statistics.by.result(.SD) ,by = SYMBOL])
 
+# print(A <- timeseries(EDITED.TICKETS, PRICE))
+
+print(system.time({
+  A <- timeseries(EDITED.TICKETS, PRICE)
+}))
 
 
 # melt(A, c('SYMBOL', 'RESULT')) -> B
