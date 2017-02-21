@@ -17,16 +17,17 @@ library(magrittr)
 library(stringr)
 # source('./NewVersion/functions2.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[6]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
 
-cl <- makeCluster(detectCores())
+# cl <- makeCluster(detectCores())
 # clusterExport(cl, envir = METAQUOTE.ANALYSTIC)
 # clusterEvalQ(cl, {library(RMitekeLab); NULL})
 
 time <- system.time({
   old.data <- read.mq.file(files)
-  raw.tickets <- get.tickets.raw()
+  # raw.tickets <- get.tickets.raw()
 })
+print(old.data)
 print(time)
 ## 8.56 Secs
 

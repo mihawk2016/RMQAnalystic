@@ -5,6 +5,7 @@ load(file = './TEST/Supported.Tickets.rdata')
 load(file = './TEST/Editing.Tickets.rdata')
 load(file = './TEST/Edited.Tickets.rdata')
 load(file = './TEST/Price.rdata')
+load(file = './TEST/TimeSeries.rdata')
 
 package.list <- search()
 if ('package:RMitekeLab' %in% package.list) {
