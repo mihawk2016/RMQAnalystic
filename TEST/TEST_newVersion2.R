@@ -17,8 +17,8 @@ library(magrittr)
 library(stringr)
 source('./TEST/test.class.R')
 
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[rep(1:10, 20)]
 
 # cl <- makeCluster(detectCores())
 # clusterExport(cl, envir = METAQUOTE.ANALYSTIC)
@@ -26,11 +26,12 @@ files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[rep(1:10, 20)]
 TEST.CLASS <- MQ_ANALYSTIC$new()
 
 time <- system.time({
-  # old.data <- read.mq.file(files)
+
+  old.data <- read.mq.file(files)
   # raw.tickets <- get.tickets.raw()
-  # old.data <- TEST.CLASS$read.files(files, TRUE)
-  old.data <- TEST.CLASS$read.files(files, FALSE)
+
 })
+print(old.data)
 print(time)
 ## 8.56 Secs
 
