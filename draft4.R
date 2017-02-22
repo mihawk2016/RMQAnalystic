@@ -41,14 +41,25 @@
 # 
 # TEST.fun()
 
+# 
+# XX <- PRICE
+# 
+# symbols <- names(XX)
+# 
+# serie.columns <- c('PROFIT', 'FLOATING', 'PL.VOLUME', 'VOLUME', 'MAX.FLOATING', 'MIN.FLOATING')
+# YY <- lapply(symbols, function(symbol) {
+#   XX[[symbol]] %>%
+#     extract(j = (serie.columns) := 0)
+# }) %>%
+#   set_names(symbols)
 
-XX <- PRICE
 
-symbols <- names(XX)
+X <- within(A, {
+  
+})
 
-serie.columns <- c('PROFIT', 'FLOATING', 'PL.VOLUME', 'VOLUME', 'MAX.FLOATING', 'MIN.FLOATING')
-YY <- lapply(symbols, function(symbol) {
-  XX[[symbol]] %>%
-    extract(j = (serie.columns) := 0)
-}) %>%
-  set_names(symbols)
+
+A[c('B', 'A')] <- list(16,17)
+A
+
+
