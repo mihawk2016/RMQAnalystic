@@ -15,7 +15,7 @@ library(xml2)
 library(data.table)
 library(magrittr)
 library(stringr)
-source('./TEST/test.class.R')
+# source('./TEST/test.class.R')
 
 files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
 
@@ -27,11 +27,11 @@ TEST.CLASS <- MQ_ANALYSTIC$new()
 
 time <- system.time({
 
-  old.data <- read.mq.file(files)
+  TEST.CLASS$add.files(files, F)
   # raw.tickets <- get.tickets.raw()
 
 })
-print(old.data)
+# print(old.data)
 print(time)
 ## 8.56 Secs
 
