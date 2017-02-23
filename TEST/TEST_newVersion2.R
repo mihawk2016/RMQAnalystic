@@ -17,7 +17,9 @@ library(magrittr)
 library(stringr)
 # source('./TEST/test.class.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2:9]
+# BUG MT4-EA//Trade 无法并行
+
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
 
 
 # cl <- makeCluster(detectCores())
@@ -27,8 +29,9 @@ TEST.CLASS <- MQ_ANALYSTIC$new()
 
 time1 <- system.time({
 
-  TEST.CLASS$add.files(files, F)
-
+  TEST.CLASS$add.files(files)
+  # cl <- makeCluster(3)
+  # stopCluster()
 })
 print(time1)
 ## 8.56 Secs
@@ -38,7 +41,7 @@ time2 <- system.time({
   TEST.CLASS$get.report('TICKETS.RAW')
 
 })
-print(time2) ##  no parallel 62.42 Secs
+print(time2) ##  no parallel 62.42 Secs ## 35.5 Secs for parallel
 
 
 # time.new <- system.time({
