@@ -53,13 +53,23 @@
 # }) %>%
 #   set_names(symbols)
 
+# 
+# X <- within(A, {
+#   
+# })
+# 
+# 
+# A[c('B', 'A')] <- list(16,17)
+# A
 
-X <- within(A, {
-  
-})
+A <- data.table(x = 1:2, y = 3:4)
 
+test.fun <- function(x) {
+  copy(x) %>%
+    extract(j = TEST2 := 3)
+  # x[, TEST := 8]
+}
 
-A[c('B', 'A')] <- list(16,17)
-A
-
-
+B <- test.fun(A)
+print(B)
+print(A)

@@ -17,7 +17,7 @@ library(magrittr)
 library(stringr)
 # source('./TEST/test.class.R')
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[2:9]
 
 
 # cl <- makeCluster(detectCores())
@@ -25,16 +25,20 @@ files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
 # clusterEvalQ(cl, {library(RMitekeLab); NULL})
 TEST.CLASS <- MQ_ANALYSTIC$new()
 
-time <- system.time({
+time1 <- system.time({
 
   TEST.CLASS$add.files(files, F)
-  # raw.tickets <- get.tickets.raw()
 
 })
-# print(old.data)
-print(time)
+print(time1)
 ## 8.56 Secs
 
+time2 <- system.time({
+
+  TEST.CLASS$get.report('TICKETS.RAW')
+
+})
+print(time2) ##  no parallel 62.42 Secs
 
 
 # time.new <- system.time({
