@@ -19,7 +19,7 @@ library(stringr)
 
 # BUG MT4-EA//Trade 无法并行
 
-files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[1:10]
+files <- file.path('.', 'TEST_FILE', dir('TEST_FILE'))[3]
 
 
 # cl <- makeCluster(detectCores())
@@ -38,7 +38,7 @@ print(time1)
 
 time2 <- system.time({
 
-  TEST.CLASS$get.report('TICKETS.RAW')
+  TEST.CLASS$get.report('TICKETS.EDITING')
 
 })
 print(time2) ##  no parallel 62.42 Secs ## 35.5 Secs for parallel
