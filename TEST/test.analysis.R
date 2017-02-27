@@ -46,7 +46,8 @@ library(RMitekeLab)
 # print(A <- timeseries(EDITED.TICKETS, PRICE))
 
 print(system.time({
-  A <- timeseries(EDITED.TICKETS, PRICE)
+  # A <- timeseries(EDITED.TICKETS, PRICE)
+  x <- money.tickets(SUPPORTED.TICKETS, set.init.money = 12345)
 }))
 
 
